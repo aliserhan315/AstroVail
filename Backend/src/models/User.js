@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const UserSchema = new mongoose.Schema(
   {
     email: { type: String, unique: true, required: true, index: true },
-    passwordHash: { type: String },           // for email/password
-    googleId: { type: String, sparse: true }, // for Google later
+    passwordHash: { type: String },          
+    googleId: { type: String, sparse: true }, 
     displayName: { type: String },
     avatarUrl: { type: String },
   },
