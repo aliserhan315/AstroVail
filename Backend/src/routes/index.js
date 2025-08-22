@@ -1,7 +1,10 @@
 import { Router } from 'express';
+import auth from './auth.js';
+import stars from './stars.js';
 
 const router = Router();
 
-// Mount additional routes here, e.g., router.use('/users', usersRouter);
+router.use('/auth', auth);
+router.use('/stars', stars);
 
 export default router;
