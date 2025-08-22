@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const StarSchema = new mongoose.Schema(
   {
     catalogId: { type: String, index: true },
-    baseName: String,              // e.g. Vega
-    displayName: String,           // e.g. Nour
+    baseName: String,              
+    displayName: String,          
     ra: Number,
     dec: Number,
     magnitude: Number,
