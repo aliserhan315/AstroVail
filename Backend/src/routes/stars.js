@@ -6,7 +6,7 @@ import {
   getStar,
   deleteStar,
 } from "../controllers/starController.js";
-import { authRequired } from "../middleware/middleware.js";
+import { authRequired } from "../middleware/Auth.js";
 
 const router = Router();
 
