@@ -1,43 +1,108 @@
-import bcrypt from 'bcryptjs';
-import User from '../models/User.js';
-import { signJwt } from '../lib/jwt.js';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { DateTime } from "luxon";
+import User from "../models/User.js";
+import Session from "../models/Session.js";
 
-function issue(user) {
-  const accessToken = signJwt({ sub: user._id.toString(), email: user.email });
+const ACCESS_TTL = "15m";
+const REFRESH_DAYS = 30;
+
+const signAccess = (user) =>
+  jwt.sign({ sub: user._id.toString(), email: user.email }, process.env.JWT_SECRET, { expiresIn: ACCESS_TTL });
+
+const makeRefreshParts = () => ({
+  sid: crypto.randomBytes(12).toString("hex"),
+  secret: crypto.randomBytes(32).toString("base64url"),
+});
+
+async function persistSession(userId, sid, secret, ua, ip) {
+  const refreshHash = await bcrypt.hash(secret, 12);
+  const expiresAt = new Date(Date.now() + REFRESH_DAYS * 24 * 3600 * 1000);
+  await Session.create({ userId, sid, refreshHash, userAgent: ua, ip, expiresAt });
+  return `${sid}.${secret}`;
+}
+
+const isValidIanaTz = (tz) => typeof tz === "string" && DateTime.now().setZone(tz).isValid;
+function sanitizeLocation(loc) {
+  if (!loc || typeof loc !== "object") return;
+  const lat = Number(loc.lat), lon = Number(loc.lon);
+  if (!isFinite(lat) || !isFinite(lon)) return;
   return {
-    accessToken,
-    user: {
-      id: user._id,
-      email: user.email,
-      displayName: user.displayName,
-      avatarUrl: user.avatarUrl,
-    },
+    lat: Math.round(lat * 10) / 10,  // ~0.1°
+    lon: Math.round(lon * 10) / 10,
+    accuracy: loc.accuracy ? Number(loc.accuracy) : undefined,
+    updatedAt: new Date(),
   };
+}
+async function applyDeviceContext(user, { tz, location } = {}) {
+  let changed = false;
+  if (isValidIanaTz(tz) && user.tz !== tz) { user.tz = tz; changed = true; }
+  const sl = sanitizeLocation(location);
+  if (sl) { user.location = sl; changed = true; }
+  if (changed) await user.save();
+}
+
+function toSafeUser(doc) {
+  const u = typeof doc.toObject === "function" ? doc.toObject() : doc;
+  const { _id, email, displayName, avatarUrl, tz, location, createdAt, updatedAt } = u;
+  return { _id, email, displayName, avatarUrl, tz, location, createdAt, updatedAt };
 }
 
 export const AuthService = {
-  async register({ email, password, displayName }) {
-    const exists = await User.findOne({ email });
-    if (exists) throw new Error('Email already in use');
+  async register({ email, password, displayName }, ctx = {}) {
+    const emailLc = email.trim().toLowerCase();
+    const existing = await User.findOne({ email: emailLc });
+    if (existing) throw new Error("Email already in use");
 
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, passwordHash, displayName });
-    return issue(user);
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await User.create({ email: emailLc, passwordHash, displayName });
+    await applyDeviceContext(user, ctx);
+
+    const accessToken = signAccess(user);
+    const { sid, secret } = makeRefreshParts();
+    const refreshToken = await persistSession(user._id, sid, secret, ctx.ua, ctx.ip);
+
+    return { user: toSafeUser(user), accessToken, refreshToken };
   },
 
-  async login({ email, password }) {
-    const user = await User.findOne({ email });
-    if (!user || !user.passwordHash) throw new Error('Invalid credentials');
+  async login({ email, password }, ctx = {}) {
+    const emailLc = email.trim().toLowerCase();
+    const user = await User.findOne({ email: emailLc }).select("+passwordHash");
+    if (!user || !user.passwordHash) throw new Error("Invalid credentials");
 
     const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) throw new Error('Invalid credentials');
+    if (!ok) throw new Error("Invalid credentials");
 
-    return issue(user);
+    await applyDeviceContext(user, ctx);
+
+    const accessToken = signAccess(user);
+    const { sid, secret } = makeRefreshParts();
+    const refreshToken = await persistSession(user._id, sid, secret, ctx.ua, ctx.ip);
+
+    return { user: toSafeUser(user), accessToken, refreshToken };
   },
 
-  async me(userId) {
-    const user = await User.findById(userId).select('_id email displayName avatarUrl createdAt');
-    if (!user) throw new Error('User not found');
-    return { id: user._id, email: user.email, displayName: user.displayName, avatarUrl: user.avatarUrl, createdAt: user.createdAt };
+  async refresh({ refreshToken }) {
+    const [sid, secret] = String(refreshToken || "").split(".");
+    if (!sid || !secret) throw new Error("Invalid refresh token");
+    const sess = await Session.findOne({ sid });
+    if (!sess || sess.expiresAt < new Date()) throw new Error("Invalid refresh token");
+    const ok = await bcrypt.compare(secret, sess.refreshHash);
+    if (!ok) throw new Error("Invalid refresh token");
+
+    const user = await User.findById(sess.userId);
+    const accessToken = signAccess(user);
+
+    await Session.deleteOne({ _id: sess._id });
+    const { sid: newSid, secret: newSecret } = makeRefreshParts();
+    const newRefresh = await persistSession(user._id, newSid, newSecret);
+
+    return { accessToken, refreshToken: newRefresh, user: toSafeUser(user) };
+  },
+
+  async logout({ refreshToken }) {
+    const [sid] = String(refreshToken || "").split(".");
+    if (sid) await Session.deleteOne({ sid });
   },
 };
