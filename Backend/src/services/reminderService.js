@@ -1,32 +1,43 @@
 import Event from "../models/Event.js";
 import EventReminder from "../models/EventReminder.js";
+import { createEventNotificationOncePerDay } from "./notificationService.js";
 
-export async function createEventReminder(userId, eventId) {
-  const event = await Event.findById(eventId);
-  if (!event) throw Object.assign(new Error("Event not found"), { status: 404 });
+const OFFSET_MIN = Number(process.env.NOTIFY_OFFSET_MINUTES ?? 60);
 
-  const start = new Date(event.start);
-  const remindAt = new Date(start.getTime() - 60 * 60 * 1000);
-  if (isNaN(remindAt.getTime())) throw new Error("Invalid event start");
-  if (remindAt.getTime() < Date.now()) {
-    remindAt.setTime(Date.now());
-  }
+export const ReminderService = {
+  async ensureReminder(userId, eventId) {
+    const event = await Event.findById(eventId);
+    if (!event) throw Object.assign(new Error("Event not found"), { status: 404 });
 
-  const doc = await EventReminder.findOneAndUpdate(
-    { user: userId, event: eventId },
-    { $set: { remindAt, active: true, sent: false } },
-    { upsert: true, new: true }
-  );
+    const remindAt = new Date(event.startTime.getTime() - OFFSET_MIN*60*1000);
+    const doc = await EventReminder.findOneAndUpdate(
+      { user: userId, event: event._id },
+      { $set: { remindAt } },
+      { upsert: true, new: true }
+    );
+    return { reminder: doc, remindAt };
+  },
+  async sendDue(now = new Date()) {
+    const windowStart = new Date(now.getTime() - 15*60*1000);
+    const q = { sentAt: null, remindAt: { $lte: now, $gte: windowStart } };
+    const due = await EventReminder.find(q).populate("event");
+    let processed = 0, created = 0, marked = 0;
 
-  return doc;
-}
+    for (const r of due) {
+      processed++;
+      const e = r.event;
+      const mins = Math.max(0, Math.round((e.startTime - now)/60000));
+      const title = `Reminder: ${e.title}`;
+      const body  = `Starts at ${e.startTime.toUTCString()} (in ~${mins} min).`;
 
-export async function cancelEventReminder(userId, eventId) {
-  const res = await EventReminder.findOneAndUpdate(
-    { user: userId, event: eventId },
-    { $set: { active: false } },
-    { new: true }
-  );
-  if (!res) throw Object.assign(new Error("Reminder not found"), { status: 404 });
-  return res;
-}
+      const res = await createEventNotificationOncePerDay({
+        userId: r.user, eventDoc: e, title, body, when: now
+      });
+      created += res.created;
+
+      const u = await EventReminder.updateOne({ _id: r._id, sentAt: null }, { $set: { sentAt: now } });
+      if (u.modifiedCount) marked++;
+    }
+    return { processed, created, marked };
+  },
+};

@@ -1,34 +1,16 @@
 import mongoose from "mongoose";
+const { Schema } = mongoose;
 
-const EventSchema = new mongoose.Schema(
-  {
-    slug: { type: String, unique: true, index: true },
-    title: { type: String, required: true },
-    type: {
-      type: String,
-      enum: [
-        "meteor_shower","eclipse","conjunction","occultation","comet","iss",
-        "aurora","solar_flare","solar_cme","other"
-      ],
-      required: true,
-    },
-    summary: String,
-    start: { type: Date, required: true }, 
-    end:   { type: Date },  
-    peak:  { type: Date },
-    visibility: {
-      hemisphere: String, 
-    },
-    tags: [String],
-    source:  String, 
-    sourceId: String,
-    contentHash: { type: String, index: true },  
-  },
-  { timestamps: true }
-);
+const EventSchema = new Schema({
+  source:     { type: String, required: true, index: true }, 
+  externalId: { type: String, required: true, index: true }, 
+  title:      { type: String, required: true },
+  description:{ type: String, default: "" },
+  startTime:  { type: Date, required: true, index: true },
+  endTime:    { type: Date, default: null },
+  meta:       { type: Object }, 
+}, { timestamps: true });
 
-EventSchema.index({ start: 1 });                
-EventSchema.index({ type: 1, start: 1 });       
-EventSchema.index({ source: 1, sourceId: 1 }, { unique: false });
+EventSchema.index({ source: 1, externalId: 1 }, { unique: true });
 
 export default mongoose.models.Event || mongoose.model("Event", EventSchema);

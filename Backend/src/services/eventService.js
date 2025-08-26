@@ -1,43 +1,35 @@
 import Event from "../models/Event.js";
-import crypto from "node:crypto";
 
-function hashEventShape(e) {
-  const payload = JSON.stringify({
-    title: e.title,
-    type: e.type,
-    start: e.start,
-    end: e.end,
-    peak: e.peak,
-    summary: e.summary,
-    tags: e.tags,
-    visibility: e.visibility,
-    source: e.source,
-    sourceId: e.sourceId,
-  });
-  return crypto.createHash("sha1").update(payload).digest("hex");
-}
+export const EventService = {
+  async list({ from, to, q, limit = 100 }) {
+    const query = {};
+    if (from || to) {
+      query.startTime = {};
+      if (from) query.startTime.$gte = new Date(from);
+      if (to)   query.startTime.$lte = new Date(to);
+    }
+    if (q) {
+      query.$text = { $search: q };
+    }
+    return Event.find(query).sort({ startTime: 1 }).limit(limit);
+  },
 
-export async function upsertEvents(events = []) {
-  if (!events.length) return { created: 0, updated: 0 };
-  const ops = [];
-  for (const e of events) {
-    const contentHash = e.contentHash || hashEventShape(e);
-    ops.push({
-      updateOne: {
-        filter: { slug: e.slug },
-        update: {
-          $set: {
-            ...e,
-            contentHash,
-          },
-        },
-        upsert: true,
-      },
-    });
-  }
-  const res = await Event.bulkWrite(ops, { ordered: false });
-  return {
-    created: res.upsertedCount ?? 0,
-    updated: res.modifiedCount ?? 0,
-  };
-}
+  async get(id) {
+    const doc = await Event.findById(id);
+    if (!doc) throw new Error("Event not found");
+    return doc;
+  },
+
+  async upsertEvents(inputEvents) {
+    let created = 0, updated = 0;
+    for (const e of inputEvents) {
+      const res = await Event.updateOne(
+        { source: e.source, externalId: e.externalId },
+        { $set: e },
+        { upsert: true }
+      );
+      if (res.upsertedCount) created++; else if (res.modifiedCount) updated++;
+    }
+    return { created, updated };
+  },
+};
