@@ -2,19 +2,19 @@ import mongoose from "mongoose";
 
 const StarSchema = new mongoose.Schema(
   {
-    catalogId: { type: String, index: true }, 
-    name: { type: String, default: null },
-    baseName: String,
-    displayName: String,
-    ra: Number,          
-    dec: Number,         
-    magnitude: Number,    
-    constellation: String, 
-    nakedEye: { type: Boolean, default: false },   
-    binocular: { type: Boolean, default: false },  
+    catalogId:   { type: String, required: true, unique: true, index: true },
+    name:        { type: String, default: null },
+    baseName:    { type: String, required: true },  
+    displayName: { type: String },                  
+    ra: Number,
+    dec: Number,
+    magnitude: Number,
+    constellation: String,
+    nakedEye:   { type: Boolean, default: false },
+    binocular:  { type: Boolean, default: false },
 
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
-    isGifted: { type: Boolean, default: false },
+    owner:   { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    isGifted:{ type: Boolean, default: false },
 
     certificateStyle: {
       type: String,
@@ -25,9 +25,12 @@ const StarSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-StarSchema.index({ owner: 1 });
-StarSchema.index({ displayName: "text", baseName: "text", constellation: "text" });
-StarSchema.index({ nakedEye: 1, binocular: 1 });   
-StarSchema.index({ magnitude: 1 });               
+StarSchema.index({ owner: 1, updatedAt: -1 });
+StarSchema.index({ magnitude: 1 });
+StarSchema.index({ nakedEye: 1, binocular: 1 });
+StarSchema.index(
+  { displayName: "text", baseName: "text", constellation: "text" },
+  { weights: { displayName: 5, baseName: 3, constellation: 1 } }
+);
 
 export default mongoose.models.Star || mongoose.model("Star", StarSchema);
