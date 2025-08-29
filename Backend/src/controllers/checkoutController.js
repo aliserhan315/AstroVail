@@ -1,5 +1,5 @@
 
-import { CheckoutService } from "../services/CheckoutService";
+import { CheckoutService } from "../services/CheckoutService.js";
 import { success, error } from "../utils/response.js";
 
 export async function createCheckout(req, res) {
