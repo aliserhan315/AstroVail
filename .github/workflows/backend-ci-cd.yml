@@ -1,4 +1,4 @@
-name: "CI & CD (Backend)"
+name: "CI (Backend)"
 
 on:
   pull_request:
@@ -33,6 +33,7 @@ jobs:
 
       - name: Install deps
         run: npm ci --include=dev
+
       - name: Run tests
         run: npx --yes jest --runInBand
         env:
@@ -40,13 +41,3 @@ jobs:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_TEST }}
           MONGODB_URI: ${{ secrets.MONGODB_URI_TEST }}
-
-  deploy:
-    needs: test
-    if: ${{ github.ref == 'refs/heads/main' && needs.test.result == 'success' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger platform deploy hook
-        env:
-          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
-        run: curl -fsS -X POST "$DEPLOY_HOOK_URL"
