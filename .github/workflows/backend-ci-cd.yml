@@ -1,4 +1,4 @@
-name: CI & CD (Backend)
+name: "CI & CD (Backend)"
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ on:
       - '.github/workflows/**'
 
 concurrency:
-  group: backend-${{ github.ref }}
+  group: backend-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -27,14 +27,15 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: 22
+          cache: npm
           cache-dependency-path: Backend/package-lock.json
 
       - name: Install deps
         run: npm ci
+
       - name: Run tests
-        run: npm run ci
+        run: npm test
         env:
           NODE_OPTIONS: --experimental-vm-modules
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
@@ -43,10 +44,10 @@ jobs:
 
   deploy:
     needs: test
-    if: github.ref == 'refs/heads/main' && needs.test.result == 'success'
+    if: ${{ github.ref == 'refs/heads/main' && needs.test.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Trigger platform deploy hook
-        run: curl -fsS -X POST "$DEPLOY_HOOK_URL"
         env:
           DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+        run: curl -fsS -X POST "$DEPLOY_HOOK_URL"
