@@ -13,7 +13,10 @@
     "import:gaia": "node scripts/seed-gaia.js",
     "start": "node src/server.js",
     "enrich:names": "node scripts/enrich-names-simbad.js",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "ci": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --ci --coverage --runInBand"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",
@@ -32,12 +35,20 @@
     "luxon": "^3.7.1",
     "mongoose": "^8.18.0",
     "morgan": "^1.10.0",
+    "ngrok": "^5.0.0-beta.2",
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
-    "p-limit": "^7.1.0"
+    "p-limit": "^7.1.0",
+    "stripe": "^18.5.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "cross-env": "^10.0.0",
+    "mongodb-memory-server": "^10.2.0",
     "nodemon": "^3.1.0",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "supertest": "^7.1.4",
+    "vitest": "^3.2.4"
   }
 }
