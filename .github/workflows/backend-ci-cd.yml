@@ -32,10 +32,9 @@ jobs:
           cache-dependency-path: Backend/package-lock.json
 
       - name: Install deps
-        run: npm ci
-
+        run: npm ci --include=dev
       - name: Run tests
-        run: npm test
+        run: npx --yes jest --runInBand
         env:
           NODE_OPTIONS: --experimental-vm-modules
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
