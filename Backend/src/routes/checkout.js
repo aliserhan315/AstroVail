@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authRequired } from "../middleware/Auth.js";
-import { createCheckout,finalizeOrderTest } from "../controllers/checkoutController";
+import { createCheckout,finalizeOrderTest } from "../controllers/checkoutController.js";
 
 const router = Router();
 
