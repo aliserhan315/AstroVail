@@ -6,6 +6,8 @@ import notifications from './notifications.js';
 import checkout from './checkout.js';
 import cart from './cart.js';
 import user from './user.js';
+import overlayRoute from './overlay.js';
+
 
 const router = Router();
 
@@ -16,4 +18,5 @@ router.use('/notifications', notifications);
 router.use('/checkout', checkout);
 router.use('/cart', cart);
 router.use('/me',user); 
+router.use('/overlay', overlayRoute);
 export default router;
