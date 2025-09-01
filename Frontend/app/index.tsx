@@ -6,6 +6,7 @@ import { useRouter } from "expo-router";
 
 export default function IndexGate() {
 const router = useRouter();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const [booting, setBooting] = useState(true);
 
 
@@ -13,11 +14,9 @@ useEffect(() => {
 (async () => {
 try {
 const seen = await AsyncStorage.getItem("av_seen_onboarding");
-if (seen === "true") {
-router.replace("/(tabs)");
-} else {
-router.replace("/(oboarding)");
-}
+
+ router.replace("/onboarding");
+
 } finally {
 setBooting(false);
 }
