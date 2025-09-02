@@ -53,8 +53,6 @@ export default function Login() {
               <TouchableOpacity><Text style={styles.link}>Sign Up</Text></TouchableOpacity>
             </Link>
           </View>
-
-          {/* Form */}
           <View style={styles.form}>
             <View style={styles.inputWrap}>
               <Text style={styles.inputLabel}>Email</Text>
