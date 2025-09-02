@@ -6,7 +6,9 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, Link } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles, { COLORS } from "./authStyles";
+import { AuthAPI } from "@/lib/endpoint";
 
 const BG = require("../../assets/images/Bg.png");
 const LOGO = require("../../assets/images/AstroVailLogo.png");
@@ -18,11 +20,18 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const submit = async () => {
+    if (loading) return;
     setLoading(true);
+    setErr(null);
     try {
+      await AuthAPI.login({ email, password: pw });
+      await AsyncStorage.setItem("av_seen_onboarding", "true"); 
       router.replace({ pathname: "/(tabs)" });
+    } catch (e: any) {
+      setErr(e?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -42,17 +51,18 @@ export default function Login() {
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <View style={[styles.centerWrap, { paddingBottom: insets.bottom + 12 }]}>
-
-          <Image source={LOGO} style={styles.logo} /> 
-
+          <Image source={LOGO} style={styles.logo} />
           <Text style={styles.title}>Sign in to your{"\n"}Account</Text>
 
           <View style={styles.subRow}>
             <Text style={styles.hint}>Don’t have an account?</Text>
             <Link href={{ pathname: "/(auth)/register" }} asChild>
-              <TouchableOpacity><Text style={styles.link}>Sign Up</Text></TouchableOpacity>
+              <TouchableOpacity>
+                <Text style={styles.link}>Sign Up</Text>
+              </TouchableOpacity>
             </Link>
           </View>
+
           <View style={styles.form}>
             <View style={styles.inputWrap}>
               <Text style={styles.inputLabel}>Email</Text>
@@ -79,19 +89,20 @@ export default function Login() {
               />
             </View>
 
+            {err ? <Text style={{ color: "#FCA5A5", marginTop: 8 }}>{err}</Text> : null}
+
             <TouchableOpacity style={styles.smallLink}>
               <Text style={styles.smallLinkText}>Forgot Your Password ?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity disabled={loading} onPress={submit} style={styles.primaryBtn} activeOpacity={0.9}>
+            <TouchableOpacity
+              disabled={loading}
+              onPress={submit}
+              style={[styles.primaryBtn, loading && { opacity: 0.8 }]}
+              activeOpacity={0.9}
+            >
               <Text style={styles.primaryText}>{loading ? "Logging in…" : "Log In"}</Text>
             </TouchableOpacity>
-
-            {/* 
-            <TouchableOpacity style={styles.googleBtn} activeOpacity={0.9}>
-              <Text style={styles.googleText}>Sign in with Google</Text>
-            </TouchableOpacity>
-            */}
           </View>
         </View>
       </KeyboardAvoidingView>
