@@ -1,14 +1,5 @@
 import React, { useRef, useState } from "react";
-import {
-  View,
-  Text,
-  ImageBackground,
-  FlatList,
-  TouchableOpacity,
-  useWindowDimensions,
-  StatusBar,
-  Platform,
-} from "react-native";
+import {View, Text,ImageBackground,FlatList,TouchableOpacity,useWindowDimensions,StatusBar,  Platform,} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -73,13 +64,9 @@ export default function Onboarding() {
         </TouchableOpacity>
       )}
 
-      <FlatList
-        ref={listRef}
-        data={slides}
-        keyExtractor={(item) => item.key}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
+      <FlatList ref={listRef}  data={slides}  
+      keyExtractor={(item) => item.key} 
+       horizontal  pagingEnabled  showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={(e) => {
           const i = Math.round(e.nativeEvent.contentOffset.x / width);
           setIndex(i);

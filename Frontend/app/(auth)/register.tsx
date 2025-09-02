@@ -7,6 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, Link } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import styles, { COLORS } from "./authStyles";
+import { AuthAPI } from "@/lib/endpoint";
 
 const BG = require("../../assets/images/Bg.png");
 const LOGO = require("../../assets/images/AstroVailLogo.png");
@@ -20,11 +21,17 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const submit = async () => {
+    if (loading) return;
     setLoading(true);
+    setErr(null);
     try {
+      await AuthAPI.register({ name: `${first} ${last}`.trim(), email, password: pw });
       router.replace({ pathname: "/(auth)/login" });
+    } catch (e: any) {
+      setErr(e?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -50,12 +57,14 @@ export default function Register() {
           <View style={styles.subRow}>
             <Text style={styles.hint}>Already have an account?</Text>
             <Link href={{ pathname: "/(auth)/login" }} asChild>
-              <TouchableOpacity><Text style={styles.link}>Sign In</Text></TouchableOpacity>
+              <TouchableOpacity>
+                <Text style={styles.link}>Sign In</Text>
+              </TouchableOpacity>
             </Link>
           </View>
 
           <View style={styles.form}>
-
+            {/* First + Last in one row */}
             <View style={styles.row}>
               <View style={[styles.inputWrap, { flex: 1 }]}>
                 <Text style={styles.inputLabel}>First Name</Text>
@@ -107,7 +116,14 @@ export default function Register() {
               />
             </View>
 
-            <TouchableOpacity disabled={loading} onPress={submit} style={styles.primaryBtn} activeOpacity={0.9}>
+            {err ? <Text style={{ color: "#FCA5A5", marginTop: 8 }}>{err}</Text> : null}
+
+            <TouchableOpacity
+              disabled={loading}
+              onPress={submit}
+              style={[styles.primaryBtn, loading && { opacity: 0.8 }]}
+              activeOpacity={0.9}
+            >
               <Text style={styles.primaryText}>{loading ? "Registering…" : "Register"}</Text>
             </TouchableOpacity>
           </View>
