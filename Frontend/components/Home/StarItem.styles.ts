@@ -2,15 +2,34 @@ import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
   card: {
-    marginHorizontal: 20,
-    marginTop: 10,
-    borderRadius: 16,
+    marginVertical: 6,
+    borderRadius: 14,
     overflow: "hidden",
   },
-  fill: { paddingVertical: 14, paddingHorizontal: 14 },
-  row: { flexDirection: "row", alignItems: "center", gap: 10 },
-  emoji: { fontSize: 18 },
-  name: { color: "#FFFFFF", fontWeight: "800", fontSize: 16, marginBottom: 2 },
-  meta: { color: "rgba(255,255,255,0.9)", fontSize: 13 },
-  coord: { color: "rgba(255,255,255,0.9)", fontSize: 12 },
+  fill: {
+    padding: 12,
+    borderRadius: 14,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  emoji: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  name: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  meta: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 13,
+    marginTop: 2,
+  },
+  coord: {
+    color: "rgba(255, 255, 255, 0.8)",
+    fontSize: 13,
+  },
 });
