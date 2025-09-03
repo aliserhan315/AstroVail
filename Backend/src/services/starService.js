@@ -19,7 +19,7 @@ export const StarService = {
     q,
     {
       page = 1,
-      limit = 20,
+      limit = 25,
       constellation,
       magnitudeMax,
       nakedEye,
@@ -32,8 +32,10 @@ export const StarService = {
     if (magnitudeMax !== undefined) baseFilter.magnitude = { $lte: Number(magnitudeMax) };
     if (toBool(nakedEye) !== undefined) baseFilter.nakedEye = !!toBool(nakedEye);
     if (toBool(binocular) !== undefined) baseFilter.binocular = !!toBool(binocular);
+
+    // No search term: return random picks (respect filters), default 25
     if (!q || !q.trim()) {
-      const size = Math.min(100, toInt(limit, 50));
+      const size = Math.min(100, toInt(limit, 25)); // was 50
       const randomFilter = { ...baseFilter, owner: null };
 
       const [items, total] = await Promise.all([
@@ -50,7 +52,7 @@ export const StarService = {
       };
     }
 
-    const lim = Math.min(100, toInt(limit, 20));
+    const lim = Math.min(100, toInt(limit, 25)); 
     const pg = Math.max(1, toInt(page, 1));
     const skip = (pg - 1) * lim;
 
