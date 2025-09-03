@@ -1,8 +1,8 @@
+// components/Home/StarItem.tsx
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import styles from "./StarItem.styles";
-import { COLORS } from "../theme/Colors";
 
 export type Star = {
   id: string;
@@ -22,17 +22,28 @@ function hexToRgba(hex: string, alpha = 1) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-export default function StarItem({ star, onPress }: { star: Star; onPress?: (s: Star) => void }) {
-  const isVega = star.name?.toLowerCase() === "vega";
-  const vegaFlat = hexToRgba("#052A93", 0.6); // 60% opacity
-
-  const colors = isVega
-    ? [vegaFlat, vegaFlat] // flat tint for Vega
-    : [COLORS.starGradA, COLORS.starGradB];
+export default function StarItem({
+  star,
+  onPress,
+}: {
+  star: Star;
+  onPress?: (s: Star) => void;
+}) {
+  const vegaFlat = hexToRgba("#052A93", 0.6);
+  const colors: [string, string] = [vegaFlat, vegaFlat];
 
   return (
-    <TouchableOpacity activeOpacity={0.9} style={styles.card} onPress={() => onPress?.(star)}>
-      <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fill}>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      style={styles.card}
+      onPress={() => onPress?.(star)}
+    >
+      <LinearGradient
+        colors={colors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.fill}
+      >
         <View style={styles.row}>
           <Text style={styles.emoji}>✨</Text>
           <View style={{ flex: 1 }}>
