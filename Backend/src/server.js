@@ -10,19 +10,31 @@ import { config } from './config.js';
 
 const app = express();
 
+if (process.env.TRUST_PROXY) app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(cors());
-app.use(webhooksRouter); 
+app.use(morgan('dev'));
+app.use(webhooksRouter);
 
 app.use(express.json());
-app.use(morgan('dev'));
-app.use(rateLimit({ windowMs: 60_000, max: 200 }));
+
+const apiLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 app.get('/', (_req, res) => res.json({ message: 'AstroVail API alive ✨' }));
-app.use('/api', api);
+app.use('/api', apiLimiter, api);
 
-await connectDB();
-
-app.listen(config.port, () => {
-  console.log(`🚀 http://localhost:${config.port}`);
-});
+try {
+  await connectDB();
+  app.listen(config.port ?? 3000, () => {
+    console.log(`🚀 http://localhost:${config.port ?? 3000}`);
+  });
+} catch (err) {
+  console.error('Failed to start server:', err);
+  process.exit(1);
+}
