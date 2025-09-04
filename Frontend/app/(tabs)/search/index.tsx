@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, View, ActivityIndicator } from "react-native";
+import { router } from "expo-router";     
 import SearchBar from "@/components/Search/SearchBar";
 import StarsList from "@/components/Search/StarListSearch";
 import Background from "@/components/Background";
@@ -13,6 +14,7 @@ export default function StarsScreen() {
   const [stars, setStars] = useState<Star[]>([]);
   const [loading, setLoading] = useState(false);
 
+ 
   const loadStars = async (query: string) => {
     try {
       setLoading(true);
@@ -35,9 +37,13 @@ export default function StarsScreen() {
     loadStars("");
   };
   const handleSubmit = (text: string) => loadStars(text);
-  const handlePressStar = (star: Star) => {
-    console.log("Star selected:", star);
+   const handlePressStar = (star: Star) => {
+      router.push({
+        pathname: "/(tabs)/(star)/[starId]",
+        params: { starId: star.id }
+      });
   };
+
 
   return (
     <View style={styles.container}>
