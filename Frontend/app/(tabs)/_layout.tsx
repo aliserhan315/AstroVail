@@ -6,6 +6,7 @@ export default function TabsLayout() {
     <Tabs screenOptions={{ headerShown: false, tabBarStyle: { backgroundColor: "#0B0F1A" }, tabBarActiveTintColor: "#B4CDED" }}>
       <Tabs.Screen name="index" options={{ title: "Home" }} />
       <Tabs.Screen name="search" options={{ title: "Search" }} />
+      <Tabs.Screen name="(Star)" options={{ title: "StarView" }} />
     </Tabs>
   );
 }
