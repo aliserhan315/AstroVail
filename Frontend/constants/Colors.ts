@@ -1,26 +1,22 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
 export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+  text: '#ECEDEE',
+  background: '#151718',
+  tint: '#fff',
+  icon: '#9BA1A6',
+  tabIconDefault: '#9BA1A6',
+  tabIconSelected: '#fff',
+
+  primary: '#2E6BFF',
+  secondary: '#315BCE',
+  onPrimary: '#FFFFFF',
+
+  cardTop: 'rgba(13, 32, 85, 0.85)',
+  cardBottom: 'rgba(7, 18, 54, 0.85)',
+  cardBorder: 'rgba(255,255,255,0.08)',
+  cardInner: 'transparent',
+
+  overlayTop: 'rgba(6, 14, 36, 0.2)',
+  overlayBottom: 'rgba(6, 14, 36, 0.75)',
+
+  infoItemBg: 'rgba(5, 42, 147, 0.6)',
 };
