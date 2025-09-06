@@ -17,5 +17,5 @@ async function tick() {
 if (process.argv.includes("--once")) tick().catch(e => { console.error(e); process.exit(1); });
 else {
   cron.schedule(SPEC, () => tick().catch(console.error));
-  console.log("⏰ Reminder cron scheduled:", SPEC);
+  console.log("Reminder cron scheduled:", SPEC);
 }
