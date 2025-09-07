@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const ROOT = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
+const ROOT =  "http://192.168.1.104:3000";
 const BASE_URL = `${ROOT.replace(/\/$/, "")}/api`;
 
 const ACCESS_KEY = "av_access";

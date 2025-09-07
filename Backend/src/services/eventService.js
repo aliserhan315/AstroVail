@@ -1,16 +1,32 @@
 import Event from "../models/Event.js";
 
 export const EventService = {
-  async list({ from, to, q, limit = 100 }) {
-    const query = {};
-    if (from || to) {
-      query.startTime = {};
-      if (from) query.startTime.$gte = new Date(from);
-      if (to)   query.startTime.$lte = new Date(to);
+
+  async list({ from, to, q, limit = 100, includeNEO = false } = {}) {
+    const now = new Date();
+    const fromDate = from ? new Date(from) : now;
+    const timeOr = [
+      { startTime: { $gte: fromDate } },
+      { endTime:   { $gte: fromDate } },
+    ];
+
+    const base = includeNEO ? {} : { source: { $ne: "nasa:neows" } };
+
+    let query = { ...base, $or: timeOr };
+
+    if (to) {
+      const toDate = new Date(to);
+      query = {
+        ...base,
+        $and: [
+          { $or: timeOr },
+          { $or: [{ startTime: { $lte: toDate } }, { endTime: { $lte: toDate } }] },
+        ],
+      };
     }
-    if (q) {
-      query.$text = { $search: q };
-    }
+
+    if (q) query.$text = { $search: q };
+
     return Event.find(query).sort({ startTime: 1 }).limit(limit);
   },
 
@@ -28,7 +44,8 @@ export const EventService = {
         { $set: e },
         { upsert: true }
       );
-      if (res.upsertedCount) created++; else if (res.modifiedCount) updated++;
+      if (res.upsertedCount) created++;
+      else if (res.modifiedCount) updated++;
     }
     return { created, updated };
   },

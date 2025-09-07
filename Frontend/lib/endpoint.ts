@@ -63,15 +63,12 @@ export const CartAPI = {
 };
 
 export const EventsAPI = {
-  list() {
-    return api.get("/events").then((r) => r.data.data);
+  list(params?: { from?: string; to?: string; q?: string; limit?: number; includeNEO?: boolean }) {
+    return api.get("/events", { params }).then((r) => r.data);
   },
-  get(id: string) {
-    return api.get(`/events/${id}`).then((r) => r.data.data);
-  },
-  remind(id: string) {
-    return api.post(`/events/${id}/remind`).then((r) => r.data.data);
-  },
+  get(id: string) { return api.get(`/events/${id}`).then((r) => r.data); },
+  
+  remind(id: string) { return api.post(`/events/${id}/remind`).then((r) => r.data); },
 };
 
 export const NotiAPI = {
