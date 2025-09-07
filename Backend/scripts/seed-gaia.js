@@ -1,4 +1,3 @@
-// scripts/import-gaia-csv.js
 import 'dotenv/config.js';
 import fs from 'fs';
 import path from 'path';
@@ -6,24 +5,21 @@ import { parse } from 'csv-parse';
 import mongoose from 'mongoose';
 import Star from '../src/models/Star.js';
 
-// --- env & path handling ---
 const MONGO_URL = (process.env.MONGODB_URI || '').trim();
 let GAIA_CSV = (process.env.GAIA_CSV || '').trim();
-// strip surrounding quotes if they slipped in
 GAIA_CSV = GAIA_CSV.replace(/^['"]|['"]$/g, '');
-// resolve to an absolute path (works on Windows)
 const CSV_PATH = path.resolve(GAIA_CSV);
 
 if (!MONGO_URL) {
-  console.error('❌ Missing MONGODB_URI in .env');
+  console.error('Missing MONGODB_URI in .env');
   process.exit(1);
 }
 if (!GAIA_CSV) {
-  console.error('❌ GAIA_CSV is empty in .env');
+  console.error('GAIA_CSV is empty in .env');
   process.exit(1);
 }
 if (!fs.existsSync(CSV_PATH)) {
-  console.error('❌ CSV not found at:', CSV_PATH);
+  console.error(' CSV not found at:', CSV_PATH);
   process.exit(1);
 }
 
@@ -32,9 +28,7 @@ const MAG_BINOC = Number(process.env.GAIA_MAG_BINOCULAR ?? 9.0);
 
 const BATCH_SIZE = 2000;
 
-// Convert a CSV row → Mongo bulk op
 function rowToOp(row) {
-  // Keep source_id as a STRING to avoid precision loss (e.g. 1.57E+18)
   const source_id = String(row.source_id ?? '').trim();
   if (!source_id) return null;
 
@@ -45,13 +39,12 @@ function rowToOp(row) {
   const magStr =
     row.phot_g_mean_mag ??
     row.g_mag ??
-    row.g; // tolerate alternate headers
+    row.g;
 
   const ra = Number(raStr);
   const dec = Number(decStr);
   const g = magStr === '' || magStr == null ? null : Number(magStr);
 
-  // If any essential numeric is NaN, skip
   if (!Number.isFinite(ra) || !Number.isFinite(dec) || g == null || !Number.isFinite(g)) {
     return null;
   }
@@ -86,14 +79,14 @@ function rowToOp(row) {
 
 async function run() {
   await mongoose.connect(MONGO_URL);
-  console.log('✅ Mongo connected');
-  console.log('📄 Importing from:', CSV_PATH);
+  console.log(' Mongo connected');
+  console.log(' Importing from:', CSV_PATH);
 
   const parser = fs
     .createReadStream(CSV_PATH)
     .pipe(
       parse({
-        columns: true,            // header → object rows
+        columns: true,
         skip_empty_lines: true,
         trim: true,
         relax_column_count: true,
@@ -131,12 +124,12 @@ async function run() {
   }
 
   console.log(
-    `\n✅ Done. Rows processed: ${total} | upserts ${upserts} | modified ${modified} | skipped ${skipped}`
+    `\n Done. Rows processed: ${total} | upserts ${upserts} | modified ${modified} | skipped ${skipped}`
   );
   await mongoose.disconnect();
 }
 
 run().catch((err) => {
-  console.error('\n❌ Import failed:', err);
+  console.error('\nImport failed:', err);
   process.exit(1);
 });

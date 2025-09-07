@@ -83,7 +83,7 @@ async function processOne(star) {
 
 async function run() {
   await mongoose.connect(MONGO_URL);
-  console.log('✅ Mongo connected');
+  console.log('Mongo connected');
 
   const query = {
     magnitude: { $lte: 7 },
@@ -119,11 +119,11 @@ async function run() {
   }
 
   await Promise.all(workers);
-  console.log(`\n✅ Done. Processed ${processed} | named ${named} | not found ${missed}`);
+  console.log(`\n Done. Processed ${processed} | named ${named} | not found ${missed}`);
   await mongoose.disconnect();
 }
 
 run().catch(err => {
-  console.error('❌ enrich failed:', err);
+  console.error('enrich failed:', err);
   process.exit(1);
 });

@@ -2,42 +2,98 @@ import Event from "../models/Event.js";
 import EventReminder from "../models/EventReminder.js";
 import { createEventNotificationOncePerDay } from "./notificationService.js";
 
-const OFFSET_MIN = Number(process.env.NOTIFY_OFFSET_MINUTES ?? 60);
+const DEFAULT_OFFSET_MIN = Number(process.env.NOTIFY_OFFSET_MINUTES ?? 60);
+
+function toDate(v) { return v instanceof Date ? v : new Date(v); }
+
+async function upsertReminder({ userId, eventId, kind, offsetMin, startTime }) {
+  const remindAt = new Date(toDate(startTime).getTime() - offsetMin * 60_000);
+
+  const doc = await EventReminder.findOneAndUpdate(
+    { user: userId, event: eventId, kind },
+    { $set: { remindAt, offsetMin, active: true }, $setOnInsert: { sentAt: null } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  ).lean();
+
+  return { kind, remindAt, reminder: doc };
+}
 
 export const ReminderService = {
-  async ensureReminder(userId, eventId) {
-    const event = await Event.findById(eventId);
-    if (!event) throw Object.assign(new Error("Event not found"), { status: 404 });
 
-    const remindAt = new Date(event.startTime.getTime() - OFFSET_MIN*60*1000);
-    const doc = await EventReminder.findOneAndUpdate(
-      { user: userId, event: event._id },
-      { $set: { remindAt } },
-      { upsert: true, new: true }
-    );
-    return { reminder: doc, remindAt };
+  async ensureDefaultReminders(userId, eventId) {
+    const event = await Event.findById(eventId).lean();
+    if (!event) { const e = new Error("Event not found"); e.status = 404; throw e; }
+    if (!event.startTime) { const e = new Error("Event has no start time"); e.status = 400; throw e; }
+
+    const startTime = event.startTime;
+    const [r24, r1] = await Promise.all([
+      upsertReminder({ userId, eventId: event._id, kind: "24h", offsetMin: 1440, startTime }),
+      upsertReminder({ userId, eventId: event._id, kind: "1h",  offsetMin: 60,   startTime }),
+    ]);
+
+    return { ok: true, reminders: [r24, r1] };
+  },
+
+  async ensureReminder(userId, eventId, opts = {}) {
+    const event = await Event.findById(eventId).lean();
+    if (!event) { const e = new Error("Event not found"); e.status = 404; throw e; }
+    if (!event.startTime) { const e = new Error("Event has no start time"); e.status = 400; throw e; }
+
+    const offsetMinutes = Number.isFinite(opts.offsetMinutes)
+      ? Number(opts.offsetMinutes)
+      : Number.isFinite(opts.leadHours)
+        ? Number(opts.leadHours) * 60
+        : DEFAULT_OFFSET_MIN;
+
+    const r = await upsertReminder({
+      userId,
+      eventId: event._id,
+      kind: "custom",
+      offsetMin: offsetMinutes,
+      startTime: event.startTime,
+    });
+
+    return { ok: true, ...r };
   },
   async sendDue(now = new Date()) {
-    const windowStart = new Date(now.getTime() - 15*60*1000);
-    const q = { sentAt: null, remindAt: { $lte: now, $gte: windowStart } };
-    const due = await EventReminder.find(q).populate("event");
+    const due = await EventReminder.find({
+      active: true,
+      sentAt: null,
+      remindAt: { $lte: now },
+    })
+      .populate("event", "title startTime")
+      .lean();
+
+    if (!due.length) return { processed: 0, created: 0, marked: 0 };
+
     let processed = 0, created = 0, marked = 0;
 
     for (const r of due) {
       processed++;
-      const e = r.event;
-      const mins = Math.max(0, Math.round((e.startTime - now)/60000));
-      const title = `Reminder: ${e.title}`;
-      const body  = `Starts at ${e.startTime.toUTCString()} (in ~${mins} min).`;
+      const titleRaw = r.event?.title || "Upcoming celestial event";
+      const startsAt  = r.event?.startTime ? new Date(r.event.startTime) : null;
+      const minsLeft  = startsAt ? Math.max(0, Math.round((startsAt.getTime() - now.getTime()) / 60000)) : null;
 
-      const res = await createEventNotificationOncePerDay({
-        userId: r.user, eventDoc: e, title, body, when: now
-      });
-      created += res.created;
+      const title = `Reminder: ${titleRaw}`;
+      const body  = startsAt
+        ? `Starts at ${startsAt.toUTCString()} (in ~${minsLeft} min).`
+        : "Starts soon.";
 
-      const u = await EventReminder.updateOne({ _id: r._id, sentAt: null }, { $set: { sentAt: now } });
-      if (u.modifiedCount) marked++;
+      try {
+        const res = await createEventNotificationOncePerDay({
+          userId: r.user,
+          eventDoc: { _id: r.event?._id || r.event },
+          title,
+          body,
+          when: now,
+        });
+        created += res.created;
+      } finally {
+        const upd = await EventReminder.updateOne({ _id: r._id, sentAt: null }, { $set: { sentAt: now } });
+        if (upd.modifiedCount) marked++;
+      }
     }
+
     return { processed, created, marked };
   },
 };

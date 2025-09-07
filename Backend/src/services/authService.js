@@ -29,7 +29,7 @@ function sanitizeLocation(loc) {
   const lat = Number(loc.lat), lon = Number(loc.lon);
   if (!isFinite(lat) || !isFinite(lon)) return;
   return {
-    lat: Math.round(lat * 10) / 10,  // ~0.1°
+    lat: Math.round(lat * 10) / 10, 
     lon: Math.round(lon * 10) / 10,
     accuracy: loc.accuracy ? Number(loc.accuracy) : undefined,
     updatedAt: new Date(),

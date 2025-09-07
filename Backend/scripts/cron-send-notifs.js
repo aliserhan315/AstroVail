@@ -9,7 +9,7 @@ async function tick() {
   await mongoose.connect(process.env.MONGODB_URI);
   const res = await ReminderService.sendDue(new Date());
   if (res.processed) {
-    console.log(`🔔 reminders processed: ${res.processed}, notifications: ${res.created}, marked sent: ${res.marked}`);
+    console.log(` reminders processed: ${res.processed}, notifications: ${res.created}, marked sent: ${res.marked}`);
   }
   await mongoose.disconnect();
 }
@@ -17,5 +17,5 @@ async function tick() {
 if (process.argv.includes("--once")) tick().catch(e => { console.error(e); process.exit(1); });
 else {
   cron.schedule(SPEC, () => tick().catch(console.error));
-  console.log("⏰ Reminder cron scheduled:", SPEC);
+  console.log("Reminder cron scheduled:", SPEC);
 }
