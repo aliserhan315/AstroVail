@@ -9,7 +9,7 @@ async function tick() {
   await mongoose.connect(process.env.MONGODB_URI);
   const res = await ReminderService.sendDue(new Date());
   if (res.processed) {
-    console.log(`🔔 reminders processed: ${res.processed}, notifications: ${res.created}, marked sent: ${res.marked}`);
+    console.log(` reminders processed: ${res.processed}, notifications: ${res.created}, marked sent: ${res.marked}`);
   }
   await mongoose.disconnect();
 }

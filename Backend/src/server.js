@@ -26,13 +26,13 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.get('/', (_req, res) => res.json({ message: 'AstroVail API alive ✨' }));
+app.get('/', (_req, res) => res.json({ message: 'AstroVail API alive' }));
 app.use('/api', apiLimiter, api);
 
 try {
   await connectDB();
   app.listen(config.port ?? 3000, () => {
-    console.log(`🚀 http://localhost:${config.port ?? 3000}`);
+    console.log(`http://localhost:${config.port ?? 3000}`);
   });
 } catch (err) {
   console.error('Failed to start server:', err);

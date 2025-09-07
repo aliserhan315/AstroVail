@@ -11,7 +11,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const NASA_API_KEY = process.env.NASA_API_KEY;
 
 if (!MONGODB_URI) throw new Error("MONGODB_URI is required");
-if (!NASA_API_KEY) console.warn("⚠️ NASA_API_KEY missing — public rate limits may hit you");
+if (!NASA_API_KEY) console.warn("NASA_API_KEY missing  public rate limits may hit you");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -46,7 +46,7 @@ async function tick() {
   const from = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const to   = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
-  console.log(`🔭 Fetch window from=${from.toISOString()} to=${to.toISOString()}`);
+  console.log(`Fetch window from=${from.toISOString()} to=${to.toISOString()}`);
   await connectDB();
   try {
     const [bigFlares, curated] = await Promise.all([
@@ -55,13 +55,13 @@ async function tick() {
     ]);
 
     const all = [...bigFlares, ...curated];
-    console.log(`🌌 Sources -> BIG FLARES: ${bigFlares.length}, CURATED: ${curated.length}, total: ${all.length}`);
+    console.log(`Sources -> BIG FLARES: ${bigFlares.length}, CURATED: ${curated.length}, total: ${all.length}`);
 
     const res = await EventService.upsertEvents(all);
     const dur = ((Date.now() - startedAt.getTime()) / 1000).toFixed(1);
-    console.log(`✅ Events upserted -> created: ${res.created}, updated: ${res.updated}, total seen: ${all.length} in ${dur}s`);
+    console.log(`Events upserted -> created: ${res.created}, updated: ${res.updated}, total seen: ${all.length} in ${dur}s`);
   } catch (e) {
-    console.error("❌ tick error:", e?.response?.status, e?.message || e);
+    console.error("tick error:", e?.response?.status, e?.message || e);
     throw e;
   } finally {
     await mongoose.disconnect().catch(() => {});
@@ -77,7 +77,7 @@ if (isOnce) {
     const jitter = Math.floor(Math.random() * 20_000);
     setTimeout(() => tick().catch(console.error), jitter);
   }, { timezone: TZ });
-  console.log(`⏰ Event fetch cron scheduled: "${CRON_SPEC}" @ ${TZ}`);
+  console.log(`Event fetch cron scheduled: "${CRON_SPEC}" @ ${TZ}`);
 }
 
 for (const sig of ["SIGINT", "SIGTERM"]) {
