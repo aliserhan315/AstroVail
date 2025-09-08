@@ -10,6 +10,9 @@ import StatsCard from "@/components/Profile/StatsCard";
 import SettingsCard from "@/components/Profile/SettingsCard";
 import { MeAPI, StarsAPI } from "@/lib/endpoint";
 import { useRouter } from "expo-router";
+import { useAppDispatch } from "@/state/hooks";
+import { setUser } from "@/state/slices/authSlice";
+import {styles} from "./ProfileScreen.styles";
 
 type Me = { _id: string; email: string; displayName?: string | null; avatarUrl?: string | null };
 
@@ -22,15 +25,13 @@ function firstNameFromDisplay(displayName?: string | null) {
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const [me, setMe] = useState<Me | null>(null);
   const [stars, setStars] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Row states
   const [notifSaving, setNotifSaving] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState<null | boolean>(null);
-
   const [locSaving, setLocSaving] = useState(false);
   const [locEnabled, setLocEnabled] = useState<null | boolean>(null);
 
@@ -42,16 +43,18 @@ export default function ProfileScreen() {
         StarsAPI.mine().catch(() => ({ items: [] })),
       ]);
       setMe(meDoc);
+      if (meDoc) dispatch(setUser(meDoc));
       setStars((mine as any)?.items || []);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const ownedStars = useMemo(() => (Array.isArray(stars) ? stars.length : 0), [stars]);
-
   const ownedConstellations = useMemo(() => {
     const s = new Set<string>();
     for (const it of stars) {
@@ -70,10 +73,7 @@ export default function ProfileScreen() {
       setNotifSaving(true);
       const { status: existing } = await Notifications.getPermissionsAsync();
       let status = existing;
-      if (existing !== "granted") {
-        const req = await Notifications.requestPermissionsAsync();
-        status = req.status;
-      }
+      if (existing !== "granted") status = (await Notifications.requestPermissionsAsync()).status;
       if (status !== "granted") {
         setNotifEnabled(false);
         return;
@@ -103,7 +103,7 @@ export default function ProfileScreen() {
           lon: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
         },
-      } as any);
+      });
       setLocEnabled(true);
     } finally {
       setLocSaving(false);
@@ -113,14 +113,23 @@ export default function ProfileScreen() {
   const name = firstNameFromDisplay(me?.displayName);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
+    <View style={styles.root}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <Background />
 
-      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 20 }}>
+      <View
+        style={[
+          styles.content,
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 20 },
+        ]}
+      >
         <ProfileHeader name={name} avatarUrl={me?.avatarUrl ?? null} />
 
-        <StatsCard loading={loading} ownedStars={ownedStars} ownedConstellations={ownedConstellations} />
+        <StatsCard
+          loading={loading}
+          ownedStars={ownedStars}
+          ownedConstellations={ownedConstellations}
+        />
 
         <SettingsCard
           notif={{ saving: notifSaving, enabled: notifEnabled }}

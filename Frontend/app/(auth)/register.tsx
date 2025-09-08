@@ -1,15 +1,14 @@
 import React, { useState } from "react";
-import {
-  View, Text, ImageBackground, TouchableOpacity,
-  KeyboardAvoidingView, Platform, StatusBar, TextInput, Image,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import {View,Text,TouchableOpacity,KeyboardAvoidingView,Platform,StatusBar,TextInput,Image,} from "react-native";
 import { useRouter, Link } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import styles, { COLORS } from "./authStyles";
+
+import Background from "@/components/Background";
+import Button from "@/components/ui/Button";
+import { ButtonVariant } from "@/types/ui";
+import styles from "./authStyles";
 import { AuthAPI } from "@/lib/endpoint";
 
-const BG = require("../../assets/images/Bg.png");
 const LOGO = require("../../assets/images/AstroVailLogo.png");
 
 export default function Register() {
@@ -28,7 +27,11 @@ export default function Register() {
     setLoading(true);
     setErr(null);
     try {
-      await AuthAPI.register({ name: `${first} ${last}`.trim(), email, password: pw });
+      await AuthAPI.register({
+        name: `${first} ${last}`.trim(),
+        email,
+        password: pw,
+      });
       router.replace({ pathname: "/(auth)/login" });
     } catch (e: any) {
       setErr(e?.message || "Registration failed. Please try again.");
@@ -40,16 +43,12 @@ export default function Register() {
   return (
     <View style={styles.root}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <ImageBackground source={BG} resizeMode="cover" style={styles.bg}>
-        <LinearGradient
-          colors={[COLORS.overlayTop, COLORS.overlayBottom]}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={styles.overlay}
-        />
-      </ImageBackground>
+      <Background />
 
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+      >
         <View style={[styles.centerWrap, { paddingBottom: insets.bottom + 12 }]}>
           <Image source={LOGO} style={styles.logo} />
           <Text style={styles.title}>Sign Up to AstroVail</Text>
@@ -64,7 +63,6 @@ export default function Register() {
           </View>
 
           <View style={styles.form}>
-            {/* First + Last in one row */}
             <View style={styles.row}>
               <View style={[styles.inputWrap, { flex: 1 }]}>
                 <Text style={styles.inputLabel}>First Name</Text>
@@ -118,14 +116,13 @@ export default function Register() {
 
             {err ? <Text style={{ color: "#FCA5A5", marginTop: 8 }}>{err}</Text> : null}
 
-            <TouchableOpacity
-              disabled={loading}
+            <Button
+              title={loading ? "Registering…" : "Register"}
               onPress={submit}
-              style={[styles.primaryBtn, loading && { opacity: 0.8 }]}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.primaryText}>{loading ? "Registering…" : "Register"}</Text>
-            </TouchableOpacity>
+              loading={loading}
+              variant={ButtonVariant.Primary}
+              style={styles.primaryBtn}
+            />
           </View>
         </View>
       </KeyboardAvoidingView>

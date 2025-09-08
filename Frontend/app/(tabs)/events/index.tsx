@@ -7,6 +7,7 @@ import { EventsAPI } from "@/lib/endpoint";
 import { Colors } from "@/constants/Colors";
 import { useNavigation } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useEventsReminder } from "@/hooks/useEventsReminder";
 
 type RawEvent = {
   _id: string; title: string; description?: string;
@@ -32,14 +33,11 @@ export default function EventsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [items, setItems] = useState<EventItem[]>([]);
+  const { setReminder, isSaving, isReminded } = useEventsReminder();
 
   const extract = (p: any) => (Array.isArray(p) ? p : p?.data ?? p ?? []);
   const mapEvent = (e: RawEvent): EventItem => ({
-    _id: e._id,
-    title: e.title,
-    description: e.description,
-    startTime: e.startTime,
-    endTime: e.endTime,
+    _id: e._id, title: e.title, description: e.description, startTime: e.startTime, endTime: e.endTime,
   });
 
   const load = useCallback(async () => {
@@ -50,9 +48,7 @@ export default function EventsScreen() {
       setItems(raw.map(mapEvent));
     } catch (e: any) {
       Alert.alert("Error", e?.message ?? "Failed to load events");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -61,19 +57,6 @@ export default function EventsScreen() {
     setRefreshing(true);
     try { await load(); } finally { setRefreshing(false); }
   }, [load]);
-
-  const setReminder = async (id: string) => {
-    try {
-      await EventsAPI.remind(id);
-      Alert.alert("Reminder", "Reminder set successfully.");
-    } catch (e: any) {
-      if (e?.response?.status === 401) {
-        Alert.alert("Sign in required", "Please sign in to set reminders.");
-      } else {
-        Alert.alert("Error", e?.message ?? "Failed to set reminder");
-      }
-    }
-  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
@@ -103,6 +86,8 @@ export default function EventsScreen() {
               event={item}
               dateLabel={formatDateRange(item.startTime, item.endTime)}
               onRemind={setReminder}
+              saving={isSaving(item._id)}
+              reminded={isReminded(item._id)}
             />
           )}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
