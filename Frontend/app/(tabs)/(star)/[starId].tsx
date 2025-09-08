@@ -1,6 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View, Pressable } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+
 import Background from "@/components/Background";
 import { Colors } from "@/constants/Colors";
 import { StarsAPI } from "@/lib/endpoint";
@@ -8,7 +17,6 @@ import StarInfoCard from "@/components/Star/StarInfoCard";
 import StoryCard from "@/components/Star/StoryCard";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import SectionCard from "@/components/ui/SectionCard";
-import { useLocalSearchParams, useNavigation } from "expo-router";
 
 type Owner = { _id: string; name?: string | null };
 type StarDoc = {
@@ -19,8 +27,31 @@ type StarDoc = {
   magnitude?: number;
   ra?: number;
   dec?: number;
-  owner?: string | Owner | null;
+  owner?: string | Owner | null; // server can return string id or Owner object
 };
+
+// Shape expected by StarInfoCard
+type StarForCard = {
+  baseName: string;
+  displayName?: string | null;
+  magnitude?: number;
+  constellation?: string | null;
+  owner?: { name?: string | null } | null;
+};
+
+// Normalize server doc to UI shape
+function toStarForCard(s: StarDoc): StarForCard {
+  return {
+    baseName: s.baseName,
+    displayName: s.displayName ?? null,
+    magnitude: s.magnitude,
+    constellation: s.constellation ?? null,
+    owner:
+      typeof s.owner === "string" || !s.owner
+        ? null
+        : { name: s.owner.name ?? null },
+  };
+}
 
 export default function StarDetailsScreen() {
   const { starId } = useLocalSearchParams();
@@ -38,7 +69,10 @@ export default function StarDetailsScreen() {
         setLoading(true);
         const idParam = Array.isArray(starId) ? starId[0] : starId;
         if (!idParam || typeof idParam !== "string") {
-          if (alive) { setErr("Invalid star id"); setLoading(false); }
+          if (alive) {
+            setErr("Invalid star id");
+            setLoading(false);
+          }
           return;
         }
         const payload = await StarsAPI.get(idParam);
@@ -50,23 +84,34 @@ export default function StarDetailsScreen() {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [starId]);
+
+  const uiStar = useMemo<StarForCard | null>(
+    () => (star ? toStarForCard(star) : null),
+    [star]
+  );
 
   const ownerId = useMemo(() => {
     if (!star?.owner) return undefined;
     return typeof star.owner === "string" ? star.owner : star.owner._id;
   }, [star]);
+
   const ownerName = useMemo(() => {
     if (!star?.owner || typeof star.owner === "string") return undefined;
     return star.owner.name ?? undefined;
   }, [star]);
 
   const isOwned = !!ownerId;
+
   const headerTitle = useMemo(() => {
     if (!star) return "—";
     const renamed = !!(star.displayName && star.displayName !== star.baseName);
-    return renamed ? `${star.baseName}/${star.displayName}` : (star.displayName ?? star.baseName);
+    return renamed
+      ? `${star.baseName}/${star.displayName}`
+      : star.displayName ?? star.baseName;
   }, [star]);
 
   const story = useMemo(() => {
@@ -78,7 +123,9 @@ export default function StarDetailsScreen() {
     if (!renamed) {
       return `Once known as ${prettyOld} and kept under the same name, this star is personally owned by ${who}. Its legacy is preserved on AstroVail’s registry.`;
     }
-    return `Once known to astronomers as ${prettyOld}, the brilliant beacon of the ${star.constellation ?? "night"} constellation has been given a new chapter in its cosmic journey. Through AstroVail’s star registry, its light has been renamed ${prettyNew}. This renaming was permanently recorded on the blockchain, ensuring that for generations to come, ${prettyOld} will be remembered not just as a scientific landmark, but as a personal tribute carrying the name ${prettyNew}.`;
+    return `Once known to astronomers as ${prettyOld}, the brilliant beacon of the ${
+      star.constellation ?? "night"
+    } constellation has been given a new chapter in its cosmic journey. Through AstroVail’s star registry, its light has been renamed ${prettyNew}. This renaming was permanently recorded on the blockchain, ensuring that for generations to come, ${prettyOld} will be remembered not just as a scientific landmark, but as a personal tribute carrying the name ${prettyNew}.`;
   }, [star, isOwned, ownerName]);
 
   if (loading) {
@@ -89,12 +136,17 @@ export default function StarDetailsScreen() {
       </View>
     );
   }
+
   if (err || !star) {
     return (
       <View style={[styles.fill, styles.center, { padding: 24 }]}>
         <Background />
         <Text style={styles.error}>{err ?? "Star not found."}</Text>
-        <PrimaryButton text="Go Back" onPress={() => (navigation as any).goBack()} style={{ marginTop: 12 }} />
+        <PrimaryButton
+          text="Go Back"
+          onPress={() => (navigation as any).goBack()}
+          style={{ marginTop: 12 }}
+        />
       </View>
     );
   }
@@ -103,45 +155,84 @@ export default function StarDetailsScreen() {
     <View style={styles.fill}>
       <Background />
       <ScrollView
-        contentContainerStyle={[styles.scrollPad, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[
+          styles.scrollPad,
+          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <Pressable onPress={() => (navigation as any).goBack()} style={{ marginBottom: 8 }}>
+        <Pressable
+          onPress={() => (navigation as any).goBack()}
+          style={{ marginBottom: 8 }}
+        >
           <Text style={{ color: Colors.tint, fontSize: 16 }}>← Back</Text>
         </Pressable>
 
         <View style={{ alignItems: "center", marginBottom: 8 }}>
           <Text style={{ fontSize: 36, marginBottom: 6 }}>🌟</Text>
-          <Text style={{ color: Colors.text, fontSize: 28, fontWeight: "800" }}>{headerTitle}</Text>
+          <Text
+            style={{ color: Colors.text, fontSize: 28, fontWeight: "800" }}
+          >
+            {headerTitle}
+          </Text>
           <Text style={{ color: Colors.tint, fontSize: 14, marginTop: 4 }}>
             {(star.constellation ?? "—") + " Constellation"}
           </Text>
         </View>
-        <StarInfoCard star={star} isOwned={isOwned} />
+
+        {uiStar && <StarInfoCard star={uiStar} isOwned={isOwned} />}
 
         {isOwned ? (
           <StoryCard
-            title={`🌟 The Story of ${star.displayName ?? star.baseName}${star.displayName ? ` (formerly ${star.baseName})` : ""}`}
+            title={`🌟 The Story of ${star.displayName ?? star.baseName}${
+              star.displayName ? ` (formerly ${star.baseName})` : ""
+            }`}
             body={story}
             footer={
               <>
                 <PrimaryButton
                   text="Check owner"
-                  onPress={() => (navigation as any).navigate("OwnerProfile", { id: ownerId })}
+                  onPress={() =>
+                    (navigation as any).navigate("OwnerProfile", {
+                      id: ownerId,
+                    })
+                  }
                 />
                 <PrimaryButton
                   text="Check Similar Stars"
                   variant="secondary"
-                  onPress={() => (navigation as any).navigate("SimilarStars", { starId: star._id })}
+                  onPress={() =>
+                    (navigation as any).navigate("SimilarStars", {
+                      starId: star._id,
+                    })
+                  }
                 />
               </>
             }
           />
         ) : (
           <SectionCard style={{ gap: 12, marginTop: 8 }}>
-            <PrimaryButton text="Add To Cart" onPress={() => (navigation as any).navigate("CartAdd", { starId: star._id })} />
-            <PrimaryButton text="Send As Gift" onPress={() => (navigation as any).navigate("GiftFlow", { starId: star._id })} />
-            <PrimaryButton text="Check Similar Stars" variant="secondary" onPress={() => (navigation as any).navigate("SimilarStars", { starId: star._id })} />
+            <PrimaryButton
+              text="Add To Cart"
+              onPress={() =>
+                (navigation as any).navigate("CartAdd", { starId: star._id })
+              }
+            />
+            <PrimaryButton
+              text="Send As Gift"
+              onPress={() =>
+                (navigation as any).navigate("GiftFlow", { starId: star._id })
+              }
+            />
+            <PrimaryButton
+              text="Check Similar Stars"
+              variant="secondary"
+              onPress={() =>
+                (navigation as any).navigate("SimilarStars", {
+                  starId: star._id,
+                })
+              }
+            />
           </SectionCard>
         )}
       </ScrollView>

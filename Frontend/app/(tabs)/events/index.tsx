@@ -7,6 +7,7 @@ import { EventsAPI } from "@/lib/endpoint";
 import { Colors } from "@/constants/Colors";
 import { useNavigation } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useEventsReminder } from "@/hooks/useEventsReminder";
 
 type RawEvent = {
   _id: string; title: string; description?: string;
@@ -32,17 +33,11 @@ export default function EventsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [items, setItems] = useState<EventItem[]>([]);
-
-  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
-  const [remindedIds, setRemindedIds] = useState<Set<string>>(new Set());
+  const { setReminder, isSaving, isReminded } = useEventsReminder();
 
   const extract = (p: any) => (Array.isArray(p) ? p : p?.data ?? p ?? []);
   const mapEvent = (e: RawEvent): EventItem => ({
-    _id: e._id,
-    title: e.title,
-    description: e.description,
-    startTime: e.startTime,
-    endTime: e.endTime,
+    _id: e._id, title: e.title, description: e.description, startTime: e.startTime, endTime: e.endTime,
   });
 
   const load = useCallback(async () => {
@@ -53,9 +48,7 @@ export default function EventsScreen() {
       setItems(raw.map(mapEvent));
     } catch (e: any) {
       Alert.alert("Error", e?.message ?? "Failed to load events");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -64,31 +57,6 @@ export default function EventsScreen() {
     setRefreshing(true);
     try { await load(); } finally { setRefreshing(false); }
   }, [load]);
-
-  const setReminder = async (id: string) => {
-    if (savingIds.has(id) || remindedIds.has(id)) return;
-    setSavingIds(prev => new Set(prev).add(id));
-    try {
-      await EventsAPI.remind(id);
-      setRemindedIds(prev => new Set(prev).add(id));
-    } catch (e: any) {
-      const code = e?.response?.status;
-      const msg = String(e?.message || "").toLowerCase();
-      if (code === 409 || msg.includes("duplicate")) {
-        setRemindedIds(prev => new Set(prev).add(id));
-      } else if (code === 401) {
-        Alert.alert("Sign in required", "Please sign in to set reminders.");
-      } else {
-        Alert.alert("Error", e?.message ?? "Failed to set reminder");
-      }
-    } finally {
-      setSavingIds(prev => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    }
-  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
@@ -118,8 +86,8 @@ export default function EventsScreen() {
               event={item}
               dateLabel={formatDateRange(item.startTime, item.endTime)}
               onRemind={setReminder}
-              saving={savingIds.has(item._id)}
-              reminded={remindedIds.has(item._id)}
+              saving={isSaving(item._id)}
+              reminded={isReminded(item._id)}
             />
           )}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
