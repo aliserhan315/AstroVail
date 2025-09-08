@@ -1,21 +1,23 @@
 import React, { useState } from "react";
-import {
-  View, Text, ImageBackground, TouchableOpacity,
-  KeyboardAvoidingView, Platform, StatusBar, TextInput, Image,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { View,Text,TouchableOpacity,KeyboardAvoidingView,Platform,StatusBar,TextInput, Image,} from "react-native";
 import { useRouter, Link } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import styles, { COLORS } from "./authStyles";
+import Background from "@/components/Background";
+import Button from "@/components/ui/Button";
+import { ButtonVariant } from "@/types/ui";
+import styles from "./authStyles";
 import { AuthAPI } from "@/lib/endpoint";
+import { useAppDispatch } from "@/state/hooks";
+import { setCredentials } from "@/state/slices/authSlice";
 
-const BG = require("../../assets/images/Bg.png");
 const LOGO = require("../../assets/images/AstroVailLogo.png");
+const ONBOARDING_KEY = "av_seen_onboarding";
 
 export default function Login() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const dispatch = useAppDispatch();
 
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -27,9 +29,16 @@ export default function Login() {
     setLoading(true);
     setErr(null);
     try {
-      await AuthAPI.login({ email, password: pw });
-      await AsyncStorage.setItem("av_seen_onboarding", "true"); 
-      router.replace({ pathname: "/(tabs)" });
+      const out = await AuthAPI.login({ email, password: pw });
+      dispatch(
+        setCredentials({
+          user: out.user,
+          accessToken: out.accessToken,
+          refreshToken: out.refreshToken,
+        })
+      );
+      await AsyncStorage.setItem(ONBOARDING_KEY, "true");
+      router.replace("/(tabs)");
     } catch (e: any) {
       setErr(e?.message || "Login failed. Please try again.");
     } finally {
@@ -40,16 +49,12 @@ export default function Login() {
   return (
     <View style={styles.root}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <ImageBackground source={BG} resizeMode="cover" style={styles.bg}>
-        <LinearGradient
-          colors={[COLORS.overlayTop, COLORS.overlayBottom]}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={styles.overlay}
-        />
-      </ImageBackground>
+      <Background />
 
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+      >
         <View style={[styles.centerWrap, { paddingBottom: insets.bottom + 12 }]}>
           <Image source={LOGO} style={styles.logo} />
           <Text style={styles.title}>Sign in to your{"\n"}Account</Text>
@@ -95,14 +100,13 @@ export default function Login() {
               <Text style={styles.smallLinkText}>Forgot Your Password ?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              disabled={loading}
+            <Button
+              title={loading ? "Logging in…" : "Log In"}
               onPress={submit}
-              style={[styles.primaryBtn, loading && { opacity: 0.8 }]}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.primaryText}>{loading ? "Logging in…" : "Log In"}</Text>
-            </TouchableOpacity>
+              loading={loading}
+              variant={ButtonVariant.Primary}
+              style={styles.primaryBtn}
+            />
           </View>
         </View>
       </KeyboardAvoidingView>

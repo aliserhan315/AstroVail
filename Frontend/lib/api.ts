@@ -1,30 +1,11 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { store } from "@/state/store";
+import { tokenRefreshed, logout } from "@/state/slices/authSlice";
 
-const ROOT =  "http://192.168.1.104:3000";
-const BASE_URL = `${ROOT.replace(/\/$/, "")}/api`;
-
-const ACCESS_KEY = "av_access";
-const REFRESH_KEY = "av_refresh";
+const ROOT = "http://192.168.1.104:3000";
+export const BASE_URL = `${ROOT.replace(/\/$/, "")}/api`;
 
 let refreshingPromise: Promise<string | null> | null = null;
-
-export async function getAccessToken() {
-  return AsyncStorage.getItem(ACCESS_KEY);
-}
-export async function getRefreshToken() {
-  return AsyncStorage.getItem(REFRESH_KEY);
-}
-export async function setTokens(access: string, refresh?: string) {
-  await AsyncStorage.setItem(ACCESS_KEY, access);
-  if (typeof refresh === "string") {
-    await AsyncStorage.setItem(REFRESH_KEY, refresh);
-  }
-  await AsyncStorage.setItem("av_token", access);
-}
-export async function clearTokens() {
-  await AsyncStorage.multiRemove([ACCESS_KEY, REFRESH_KEY, "av_token"]);
-}
 
 const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -32,11 +13,11 @@ const api: AxiosInstance = axios.create({
   headers: { Accept: "application/json", "Content-Type": "application/json" },
 });
 
-api.interceptors.request.use(async (config) => {
-  const token = await getAccessToken();
+api.interceptors.request.use((config) => {
+  const token = store.getState().auth.accessToken;
   if (token) {
     config.headers = config.headers ?? {};
-    config.headers.Authorization = `Bearer ${token}`;
+    (config.headers as any).Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -44,18 +25,20 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (res) => res,
   async (err: AxiosError<any>) => {
-    const original = err.config as any;
-
+    const original: any = err.config || {};
     if (err.code === "ECONNABORTED") throw new Error("Request timed out. Please try again.");
     if (!err.response) throw new Error("Network error. Check your connection.");
 
-    if (err.response.status === 401 && !original?._retry) {
-      original._retry = true;
+    const status = err.response.status ?? 0;
+    const isRefreshingCall =
+      typeof original?.url === "string" && original.url.includes("/auth/refresh");
 
+    if (status === 401 && !original._retry && !isRefreshingCall) {
+      original._retry = true;
       try {
         if (!refreshingPromise) {
           refreshingPromise = (async () => {
-            const refreshToken = await getRefreshToken();
+            const refreshToken = store.getState().auth.refreshToken;
             if (!refreshToken) return null;
 
             const { data } = await axios.post(
@@ -63,10 +46,15 @@ api.interceptors.response.use(
               { refreshToken },
               { headers: { "Content-Type": "application/json" }, timeout: 10000 }
             );
-            const newAccess = data?.accessToken as string | undefined;
-            const newRefresh = data?.refreshToken as string | undefined;
-            if (newAccess) await setTokens(newAccess, newRefresh);
-            return newAccess ?? null;
+
+            const payload = data?.data ?? data;
+            const newAccess: string | undefined = payload?.accessToken;
+            const newRefresh: string | undefined = payload?.refreshToken;
+            if (newAccess) {
+              store.dispatch(tokenRefreshed({ accessToken: newAccess, refreshToken: newRefresh }));
+              return newAccess;
+            }
+            return null;
           })();
         }
 
@@ -81,14 +69,14 @@ api.interceptors.response.use(
       } catch {
         refreshingPromise = null;
       }
-
-      await clearTokens();
+      store.dispatch(logout());
     }
 
+    const payload = err.response.data as any;
     const msg =
-      (err.response.data as any)?.message ||
-      (err.response.data as any)?.error ||
-      `Request failed (${err.response.status})`;
+      payload?.message ||
+      payload?.error ||
+      (typeof payload === "string" ? payload : `Request failed (${status})`);
     throw new Error(msg);
   }
 );

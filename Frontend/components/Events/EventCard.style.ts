@@ -12,43 +12,14 @@ export const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
   },
-  rowTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
+  rowTop: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
+  title: { flex: 1, color: Colors.text, fontSize: 16, fontWeight: "600" },
+  reminderBtnReset: { minHeight: 32, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999 },
+  date: { color: Colors.text, opacity: 0.9, fontSize: 14, marginBottom: 4 },
+  desc: { color: Colors.text, opacity: 0.8, fontSize: 13, lineHeight: 18 },
+  badge: {
+    paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999,
+    backgroundColor: "rgba(88,214,141,0.18)", borderWidth: 1, borderColor: "rgba(88,214,141,0.35)",
   },
-  title: {
-    flex: 1,
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  reminderBtn: {
-   alignItems : "center",
-    alignContent : "center",
-    justifyContent : "center",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-
-    borderRadius: 999,
-    backgroundColor: Colors.primary,
-  },
-  reminderText: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: "500",
-  },
-  date: {
-    color: Colors.text,
-    opacity: 0.9,
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  desc: {
-    color: Colors.text,
-    opacity: 0.8,
-    fontSize: 13,
-    lineHeight: 18,
-  },
+  badgeText: { color: "#58d68d", fontSize: 11, fontWeight: "600" },
 });
-
