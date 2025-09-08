@@ -33,6 +33,9 @@ export default function EventsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [items, setItems] = useState<EventItem[]>([]);
 
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
+  const [remindedIds, setRemindedIds] = useState<Set<string>>(new Set());
+
   const extract = (p: any) => (Array.isArray(p) ? p : p?.data ?? p ?? []);
   const mapEvent = (e: RawEvent): EventItem => ({
     _id: e._id,
@@ -63,15 +66,27 @@ export default function EventsScreen() {
   }, [load]);
 
   const setReminder = async (id: string) => {
+    if (savingIds.has(id) || remindedIds.has(id)) return;
+    setSavingIds(prev => new Set(prev).add(id));
     try {
       await EventsAPI.remind(id);
-      Alert.alert("Reminder", "Reminder set successfully.");
+      setRemindedIds(prev => new Set(prev).add(id));
     } catch (e: any) {
-      if (e?.response?.status === 401) {
+      const code = e?.response?.status;
+      const msg = String(e?.message || "").toLowerCase();
+      if (code === 409 || msg.includes("duplicate")) {
+        setRemindedIds(prev => new Set(prev).add(id));
+      } else if (code === 401) {
         Alert.alert("Sign in required", "Please sign in to set reminders.");
       } else {
         Alert.alert("Error", e?.message ?? "Failed to set reminder");
       }
+    } finally {
+      setSavingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -103,6 +118,8 @@ export default function EventsScreen() {
               event={item}
               dateLabel={formatDateRange(item.startTime, item.endTime)}
               onRemind={setReminder}
+              saving={savingIds.has(item._id)}
+              reminded={remindedIds.has(item._id)}
             />
           )}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
