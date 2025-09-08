@@ -2,6 +2,7 @@ import React, { PropsWithChildren } from "react";
 import { StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Colors } from "@/constants/Colors";
+import { cardBase } from "./cardTheme";
 
 type Props = PropsWithChildren<{ style?: any; title?: string; header?: React.ReactNode }>;
 
@@ -18,11 +19,7 @@ export default function SectionCard({ children, style }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.cardBorder,
-  },
+
+const styles= StyleSheet.create({
+  card: { ...cardBase },
 });
