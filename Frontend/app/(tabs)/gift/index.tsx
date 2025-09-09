@@ -84,8 +84,8 @@ export default function GiftScreen() {
 
           <View style={styles.rowBetween}>
             <Text style={styles.rowLabel}>Chosen Stars ({items.length})</Text>
-            <Pressable onPress={() => router.push("/(tabs)/search")} style={styles.addMoreBtn}>
-              <Text style={styles.addMoreText}>Add More Stars</Text>
+            <Pressable onPress={() => router.push("/(tabs)/stars")} style={styles.addMoreBtn}>
+                <Text style={styles.addMoreText}>Add More Stars</Text>
             </Pressable>
           </View>
 
