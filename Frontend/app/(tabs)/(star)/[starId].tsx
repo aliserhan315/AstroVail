@@ -13,8 +13,8 @@ import { useLocalSearchParams, useNavigation } from "expo-router";
 import Background from "@/components/Background";
 import { Colors } from "@/constants/Colors";
 import { StarsAPI } from "@/lib/endpoint";
-import StarInfoCard from "@/components/Star/StarInfoCard";
-import StoryCard from "@/components/Star/StoryCard";
+import StarInfoCard from "@/components/Star/starInfoCard/StarInfoCard";
+import StoryCard from "@/components/Star/StoryCard/StoryCard";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import SectionCard from "@/components/ui/SectionCard";
 
@@ -27,10 +27,9 @@ type StarDoc = {
   magnitude?: number;
   ra?: number;
   dec?: number;
-  owner?: string | Owner | null; // server can return string id or Owner object
+  owner?: string | Owner | null; 
 };
 
-// Shape expected by StarInfoCard
 type StarForCard = {
   baseName: string;
   displayName?: string | null;
@@ -39,7 +38,6 @@ type StarForCard = {
   owner?: { name?: string | null } | null;
 };
 
-// Normalize server doc to UI shape
 function toStarForCard(s: StarDoc): StarForCard {
   return {
     baseName: s.baseName,
@@ -121,11 +119,15 @@ export default function StarDetailsScreen() {
     const prettyNew = star.displayName ?? star.baseName;
     const prettyOld = star.baseName;
     if (!renamed) {
-      return `Once known as ${prettyOld} and kept under the same name, this star is personally owned by ${who}. Its legacy is preserved on AstroVail’s registry.`;
+      return `Once known as ${prettyOld} and kept under the same name, this star is personally owned by ${who}. 
+      Its legacy is preserved on AstroVail’s registry.`;
     }
     return `Once known to astronomers as ${prettyOld}, the brilliant beacon of the ${
       star.constellation ?? "night"
-    } constellation has been given a new chapter in its cosmic journey. Through AstroVail’s star registry, its light has been renamed ${prettyNew}. This renaming was permanently recorded on the blockchain, ensuring that for generations to come, ${prettyOld} will be remembered not just as a scientific landmark, but as a personal tribute carrying the name ${prettyNew}.`;
+    } constellation has been given a new chapter in its cosmic journey. Through AstroVail’s 
+    star registry, its light has been renamed ${prettyNew}. This renaming was permanently recorded on 
+    the blockchain, ensuring that for generations to come, ${prettyOld} will be remembered not just as a scientific landmark,
+     but as a personal tribute carrying the name ${prettyNew}.`;
   }, [star, isOwned, ownerName]);
 
   if (loading) {

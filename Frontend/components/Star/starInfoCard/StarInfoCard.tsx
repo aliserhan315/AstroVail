@@ -1,7 +1,7 @@
 import React from "react";
 import {  Text, View } from "react-native";
-import SectionCard from "../ui/SectionCard";
-import InfoItem from "./InfoItem";
+import SectionCard from "../../ui/SectionCard";
+import InfoItem from "../InfoItem/InfoItem";
 import { styles } from "./StarInfoCard.styles";
 
 
