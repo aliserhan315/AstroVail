@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import styles from "./StarsList.styles";
-import StarItem, { Star } from "./StarItem";
+import StarItem, { Star } from "../StarItem/StarItem";
 
 export default function StarsList({
   stars,
