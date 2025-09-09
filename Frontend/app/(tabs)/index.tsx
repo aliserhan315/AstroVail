@@ -67,15 +67,14 @@ export default function HomeScreen() {
     [stars]
   );
 
-  // ---- Logout handler ----
   const onLogout = useCallback(async () => {
     if (loggingOut) return;
     setLoggingOut(true);
     try {
-      await AuthAPI.logout();        // POST /auth/logout with refreshToken
+      await AuthAPI.logout();        
     } catch {}
     finally {
-      dispatch(logoutAction());      // clears user + tokens in Redux (and persisted state)
+      dispatch(logoutAction());
       router.replace("/(auth)/login");
       setLoggingOut(false);
     }
@@ -88,9 +87,10 @@ export default function HomeScreen() {
 
       <Header
         topInset={insets.top}
-        onBellPress={() => { /* navigate to notifications */ }}
+        onBellPress={() => router.push("/notifications")}
         onLogoutPress={onLogout}
       />
+    
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
@@ -104,7 +104,8 @@ export default function HomeScreen() {
           stars={starsLite}
           onReposition={() => {}}
         />
-        <StarsList stars={stars} onPressStar={() => { /* navigate to detail */ }} />
+        <StarsList stars={stars} onPressStar={(s) => router.push({ pathname: "/(tabs)/(star)/[starId]", params: { starId: s.id } })} />
+
       </ScrollView>
     </View>
   );

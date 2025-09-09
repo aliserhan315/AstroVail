@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, StatusBar, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -22,18 +22,14 @@ export default function GiftScreen() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
-  const pills = useMemo(
-    () =>
-      items.map((it) => ({
-        id: it.starId,
-        name: it.starName,
-        mag: it.price != null ? String(it.price) : "0.03",
-        ra: "18h36m",
-        dec: "+38°47′",
-        constellation: "Lyra",
-      })),
-    [items]
-  );
+  const pills = items.map((it) => ({
+    id: it.starId,
+    name: it.starName,
+    mag: it.price != null ? String(it.price) : "0.03",
+    ra: "18h36m",
+    dec: "+38°47′",
+    constellation: "Lyra",
+  }));
 
   const setStyle = (style: CertificateStyle) => {
     items.forEach((it) =>
@@ -50,7 +46,7 @@ export default function GiftScreen() {
         })
       )
     );
-    router.push("/checkout");
+    router.push("/cart");
   };
 
   const generateWithAI = () => {
@@ -88,7 +84,7 @@ export default function GiftScreen() {
 
           <View style={styles.rowBetween}>
             <Text style={styles.rowLabel}>Chosen Stars ({items.length})</Text>
-            <Pressable onPress={() => router.push("/(tabs)/stars")} style={styles.addMoreBtn}>
+            <Pressable onPress={() => router.push("/(tabs)/search")} style={styles.addMoreBtn}>
               <Text style={styles.addMoreText}>Add More Stars</Text>
             </Pressable>
           </View>
@@ -112,7 +108,7 @@ export default function GiftScreen() {
               <LabeledInput
                 value={message}
                 onChangeText={setMessage}
-                placeholder="Write you custome message here"
+                placeholder="Write you customer message here"
                 multiline
                 rightButtonText="Generate with AI"
                 onRightButtonPress={generateWithAI}

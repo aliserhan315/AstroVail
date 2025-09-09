@@ -5,9 +5,10 @@ import Background from "@/components/Background";
 import EventCard, { EventItem } from "@/components/Events/EventCard/EventCard";
 import { EventsAPI } from "@/lib/endpoint";
 import { Colors } from "@/constants/Colors";
-import { useNavigation } from "expo-router";
+import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useEventsReminder } from "@/hooks/useEventsReminder";
+
 
 type RawEvent = {
   _id: string; title: string; description?: string;
@@ -29,7 +30,7 @@ function formatDateRange(startISO?: string, endISO?: string) {
 
 export default function EventsScreen() {
   const insets = useSafeAreaInsets();
-  const nav = useNavigation();
+ 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [items, setItems] = useState<EventItem[]>([]);
@@ -68,7 +69,7 @@ export default function EventsScreen() {
           <Text style={{ color: Colors.text, fontSize: 28, fontWeight: "800" }}>Celestial Events</Text>
           <Text style={{ color: "#B6B6B6", fontSize: 14, marginTop: 4 }}>Don’t miss these phenomena</Text>
         </View>
-        <Pressable onPress={() => (nav as any).navigate("/notifications")}>
+        <Pressable onPress={() => router.push("/notifications")}>
           <Ionicons name="notifications-outline" size={22} color={Colors.text} />
         </Pressable>
       </View>

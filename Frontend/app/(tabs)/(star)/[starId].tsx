@@ -8,7 +8,8 @@ import {
   Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useLocalSearchParams,router, useNavigation } from "expo-router";
+
 
 import Background from "@/components/Background";
 import { Colors } from "@/constants/Colors";
@@ -163,12 +164,9 @@ export default function StarDetailsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Pressable
-          onPress={() => (navigation as any).goBack()}
-          style={{ marginBottom: 8 }}
-        >
-          <Text style={{ color: Colors.tint, fontSize: 16 }}>← Back</Text>
-        </Pressable>
+      <Pressable onPress={() => router.back()} style={{ marginBottom: 8 }}>
+  <Text style={{ color: Colors.tint, fontSize: 16 }}>← Back</Text>
+</Pressable>
 
         <View style={{ alignItems: "center", marginBottom: 8 }}>
           <Text style={{ fontSize: 36, marginBottom: 6 }}>🌟</Text>
