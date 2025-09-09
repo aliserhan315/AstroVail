@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text } from "react-native";
-import Button from "../ui/Button";
+import Button from "../../ui/Button";
 import { ButtonVariant } from "@/types/ui";
-import { styles } from "./EventCard.style";
+import { styles } from "../EventCard.style";
 
 export type EventItem = {
   _id: string;

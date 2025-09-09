@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, View, ActivityIndicator } from "react-native";
 import { router } from "expo-router";     
 import SearchBar from "@/components/Search/SearchBar";
-import StarsList from "@/components/Search/StarListSearch";
+import StarsList from "@/components/Search/StarListSearch/StarListSearch";
 import Background from "@/components/Background";
 import { StarsAPI } from "@/lib/endpoint";
 import styles from "./StarsScreen.styles";

@@ -7,7 +7,7 @@ import Background from "../../components/Background";
 import Header from "@/components/Home/Header";
 import Hero from "@/components/Home/Hero";
 import SkyPanel from "@/components/Home/SkyPanel";
-import StarsList from "@/components/Home/StarsList";
+import StarsList from "@/components/Home/HomeStarList/StarsList";
 import { Star } from "@/components/Home/StarItem";
 
 
