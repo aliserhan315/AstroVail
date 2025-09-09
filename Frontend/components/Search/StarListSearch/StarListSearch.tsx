@@ -1,7 +1,7 @@
 import React from "react";
-import { View, Text } from "react-native";
-import styles from "./StarsList.styles";
-import StarItem, { Star } from "./StarItem";
+import { View } from "react-native";
+import styles from "../../Home/HomeStarList/StarsList.styles";
+import StarItem ,{Star} from "../../Home/StarItem/StarItem";
 
 export default function StarsList({
   stars,
@@ -13,7 +13,7 @@ export default function StarsList({
   return (
     <View>
       <View style={styles.head}>
-        <Text style={styles.title}>Your Stars ({stars.length})</Text>
+      
       </View>
       {stars.map((s) => (
         <StarItem key={s.id} star={s} onPress={onPressStar} />

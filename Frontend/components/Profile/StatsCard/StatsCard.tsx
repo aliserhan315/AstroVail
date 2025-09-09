@@ -29,11 +29,11 @@ function Metric({ loading, value, label }: { loading: boolean; value: number; la
     <View
       style={{
         flex: 1,
-        backgroundColor: "rgba(255,255,255,0.06)",
         paddingVertical: 14,
         paddingHorizontal: 12,
         borderRadius: 12,
         alignItems: "center",
+        justifyContent: "center",
       }}
     >
       {loading ? (
@@ -41,7 +41,7 @@ function Metric({ loading, value, label }: { loading: boolean; value: number; la
       ) : (
         <>
           <Text style={{ color: Colors.text, fontSize: 22 }}>{value}</Text>
-          <Text style={{ color: "#B6B6B6", fontSize: 12, marginTop: 6 }}>{label}</Text>
+          <Text style={{ color: "#B6B6B6", fontSize: 11, marginTop: 6 }}>{label}</Text>
         </>
       )}
     </View>

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StatusBar, ActivityIndicator, FlatList, RefreshControl, Alert, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Background from "@/components/Background";
-import EventCard, { EventItem } from "@/components/Events/EventCard";
+import EventCard, { EventItem } from "@/components/Events/EventCard/EventCard";
 import { EventsAPI } from "@/lib/endpoint";
 import { Colors } from "@/constants/Colors";
 import { useNavigation } from "expo-router";

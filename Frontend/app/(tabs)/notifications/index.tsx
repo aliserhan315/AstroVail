@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StatusBar, ActivityIndicator, FlatList, RefreshControl, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Background from "@/components/Background";
-import NotificationCard, { NotiItem } from "@/components/Events/NotificationCard";
+import NotificationCard, { NotiItem } from "@/components/Events/Notificationcard/NotificationCard";
 import { NotiAPI } from "@/lib/endpoint";
 import { Colors } from "@/constants/Colors";
 

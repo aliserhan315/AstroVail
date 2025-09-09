@@ -7,7 +7,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import styles from "./SkyPanel.styles";
-import { COLORS } from "../theme/Colors";
+import { COLORS } from "../../theme/Colors";
 
 export type StarLite = { id: string; name: string };
 
