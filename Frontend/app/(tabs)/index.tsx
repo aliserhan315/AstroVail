@@ -1,15 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View, StatusBar, ScrollView, RefreshControl } from "react-native";
+import { View, StatusBar, ScrollView, RefreshControl} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MeAPI, StarsAPI } from "@/lib/endpoint";
+import { useRouter } from "expo-router";
 
-import Background from "../../components/Background";
-import Header from "@/components/Home/Header";
-import Hero from "@/components/Home/Hero";
-import SkyPanel from "@/components/Home/SkyPanel";
+import { MeAPI, StarsAPI, AuthAPI } from "@/lib/endpoint";
+import Background from "@/components/Background";
+import Header from "@/components/Home/HomeHeader/Header";
+import Hero from "@/components/Home/Hero/Hero";
+import SkyPanel from "@/components/Home/SkyPanel/SkyPanel";
 import StarsList from "@/components/Home/HomeStarList/StarsList";
-import { Star } from "@/components/Home/StarItem";
+import { Star } from "@/components/Home/StarItem/StarItem";
 
+import { useAppDispatch, useAppSelector } from "@/state/hooks";
+import { logout as logoutAction } from "@/state/slices/authSlice";
 
 function firstNameFromDisplay(displayName?: string | null) {
   if (!displayName) return "Explorer";
@@ -19,21 +22,25 @@ function firstNameFromDisplay(displayName?: string | null) {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
 
-  const [name, setName] = useState<string>("Explorer");
+  const user = useAppSelector((s) => s.auth.user);
+
+  const [name, setName] = useState<string>(firstNameFromDisplay(user?.displayName) || "Explorer");
   const [stars, setStars] = useState<Star[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const load = useCallback(async () => {
     const me = await MeAPI.get().catch(() => null);
-
     const mine = await StarsAPI.mine().catch(() => ({ items: [] as Star[] }));
 
     const n =
       firstNameFromDisplay(me?.displayName) ||
-      firstNameFromDisplay(me?.name) ||
+      firstNameFromDisplay((me as any)?.name) ||
+      firstNameFromDisplay(user?.displayName) ||
       "Explorer";
-
     setName(n);
 
     const items = (mine?.items ?? []).map((s: any) => ({
@@ -46,19 +53,13 @@ export default function HomeScreen() {
     })) as Star[];
 
     setStars(items);
-  }, []);
+  }, [user?.displayName]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await load();
-    } finally {
-      setRefreshing(false);
-    }
+    try { await load(); } finally { setRefreshing(false); }
   }, [load]);
 
   const starsLite = useMemo(
@@ -66,26 +67,44 @@ export default function HomeScreen() {
     [stars]
   );
 
+  // ---- Logout handler ----
+  const onLogout = useCallback(async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await AuthAPI.logout();        // POST /auth/logout with refreshToken
+    } catch {}
+    finally {
+      dispatch(logoutAction());      // clears user + tokens in Redux (and persisted state)
+      router.replace("/(auth)/login");
+      setLoggingOut(false);
+    }
+  }, [dispatch, router, loggingOut]);
+
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <Background />
 
-      <Header topInset={insets.top} onBellPress={() => { /* navigate to notifications */ }} />
+      <Header
+        topInset={insets.top}
+        onBellPress={() => { /* navigate to notifications */ }}
+        onLogoutPress={onLogout}
+      />
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+        }
       >
         <Hero name={name} />
         <SkyPanel
           stars={starsLite}
-          onReposition={(pos) => {
-          
-          }}
+          onReposition={() => {}}
         />
-        <StarsList stars={stars} onPressStar={(s) => { /* navigate to detail */ }} />
+        <StarsList stars={stars} onPressStar={() => { /* navigate to detail */ }} />
       </ScrollView>
     </View>
   );
