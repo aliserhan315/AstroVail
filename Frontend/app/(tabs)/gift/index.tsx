@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, StatusBar, Pressable, Alert, Linking } from "react-native";
+﻿import React, { useState } from "react";
+import { View, Text, ScrollView, StatusBar, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import Background from "@/components/Background";
@@ -8,12 +8,12 @@ import LabeledInput from "@/components/ui/LabeledInput";
 import Button from "@/components/ui/Button";
 import { ButtonVariant } from "@/types/ui";
 import { useAppDispatch, useAppSelector } from "@/state/hooks";
-import { updateItem, removeItem, clear as clearCart } from "@/state/slices/cartSlice";
+import { updateItem, removeItem } from "@/state/slices/cartSlice";
 import { CertificateStyle } from "@/types/cart";
 import GiftStarPill from "@/components/gift/GiftStarPill";
 import styles from "./gift.styles";
 
-import { CartAPI, CheckoutAPI } from "@/lib/endpoint";
+import { CartAPI } from "@/lib/endpoint";
 
 export default function GiftScreen() {
   const insets = useSafeAreaInsets();
@@ -24,7 +24,7 @@ export default function GiftScreen() {
   const [mode, setMode] = useState<"gift" | "self">("gift");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  
 
   const pills = items.map((it) => ({
     id: it.starId,
@@ -41,86 +41,26 @@ export default function GiftScreen() {
     );
   };
 
-  const syncServerCartIfNeeded = async () => {
-    if (!items.length) {
-      throw new Error("Your cart is empty.");
-    }
-    try {
-      const session = await CheckoutAPI.create();
-      return session;
-    } catch (e: any) {
-      const status = e?.response?.status;
-      if (status === 400) {
-        // server cart empty -> backfill from local
-        await Promise.all(items.map((it) => CartAPI.add(it.starId, it.qty ?? 1)));
-        return await CheckoutAPI.create();
-      }
-      throw e;
-    }
-  };
-
   const onConfirm = async () => {
-    if (!items.length) {
-      Alert.alert("Cart is empty", "Please add a star first.");
-      return;
+    const patch = mode === "gift" ? { recipientEmail: email.trim() } : { recipientEmail: null };
+    // Add + update sequentially to avoid upsert race creating duplicate carts
+    for (const it of items) {
+      await CartAPI.add(it.starId, it.qty ?? 1);
+      await CartAPI.update(it.starId, patch);
     }
-    if (mode === "gift" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      Alert.alert("Invalid email", "Please enter a valid recipient email.");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      // Save meta to Redux
-      items.forEach((it) =>
-        dispatch(
-          updateItem({
-            starId: it.starId,
-            patch: { recipientEmail: mode === "gift" ? email.trim() : undefined, message },
-          })
-        )
+    for (const it of items) {
+      dispatch(
+        updateItem({
+          starId: it.starId,
+          patch: { ...patch, message: mode === "gift" ? message : undefined },
+        })
       );
-
-      const session = await syncServerCartIfNeeded();
-      const checkoutUrl: string | undefined = session?.checkoutUrl;
-      const orderId: string | undefined = session?.orderId;
-
-      // DEV path: mock URL -> finalize immediately
-      if (orderId && checkoutUrl && /example\.com\/mock-checkout/.test(checkoutUrl)) {
-        await CheckoutAPI.finalize(orderId);
-        dispatch(clearCart());
-        Alert.alert("Success", "Your order is complete. The star is now yours!");
-        router.replace("/(tabs)");
-        return;
-      }
-
-      // Real Stripe checkout
-      if (checkoutUrl && /^https?:\/\//i.test(checkoutUrl)) {
-        await Linking.openURL(checkoutUrl);
-        return;
-      }
-
-      // Fallback: finalize if we have an order id
-      if (orderId) {
-        await CheckoutAPI.finalize(orderId);
-        dispatch(clearCart());
-        Alert.alert("Success", "Your order is complete. The star is now yours!");
-        router.replace("/(tabs)");
-        return;
-      }
-
-      throw new Error("Could not start checkout.");
-    } catch (e: any) {
-      Alert.alert("Checkout failed", e?.message ?? "Please try again.");
-    } finally {
-      setSubmitting(false);
     }
+    router.push("/checkout");
   };
 
   const generateWithAI = () => {
-    setMessage(
-      "Write your custom message here — a short, heartfelt note that travels with your star."
-    );
+    setMessage("Write your custom message here — a short, heartfelt note that travels with your star.");
   };
 
   return (
@@ -203,10 +143,9 @@ export default function GiftScreen() {
           </View>
 
           <Button
-            title={submitting ? "Processing..." : mode === "gift" ? "Send Gift" : "Buy Now"}
+            title={mode === "gift" ? "Confirm Gift" : "Buy Stars"}
             variant={ButtonVariant.Primary}
             onPress={onConfirm}
-            disabled={submitting}
             style={styles.cta}
           />
         </View>

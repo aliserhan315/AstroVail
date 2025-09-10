@@ -11,10 +11,11 @@ const StarSchema = new mongoose.Schema(
     magnitude: Number,
     constellation: String,
     nakedEye:   { type: Boolean, default: false },
-    binocular:  { type: Boolean, default: false },
+  binocular:  { type: Boolean, default: false },
 
-    owner:   { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
-    isGifted:{ type: Boolean, default: false },
+  owner:   { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  pendingOwnerEmail: { type: String, default: null, index: true },
+  isGifted:{ type: Boolean, default: false },
 
     certificateStyle: {
       type: String,
@@ -27,6 +28,7 @@ const StarSchema = new mongoose.Schema(
 
 StarSchema.index({ owner: 1, updatedAt: -1 });
 StarSchema.index({ magnitude: 1 });
+StarSchema.index({ pendingOwnerEmail: 1 });
 StarSchema.index({ nakedEye: 1, binocular: 1 });
 StarSchema.index(
   { displayName: "text", baseName: "text", constellation: "text" },

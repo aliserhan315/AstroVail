@@ -29,6 +29,7 @@ export const StarsAPI = {
 export const CartAPI = {
   get() { return api.get("/cart").then(r => r.data.data); },
   add(starId: string, qty = 1) { return api.post("/cart/items", { starId, qty }).then(r => r.data.data); },
+  update(starId: string, patch: any) { return api.patch(`/cart/items/${starId}`, patch).then(r => r.data.data); },
   remove(starId: string) { return api.delete(`/cart/items/${starId}`).then(r => r.data.data); },
 };
 

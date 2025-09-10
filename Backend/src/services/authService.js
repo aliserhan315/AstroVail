@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { DateTime } from "luxon";
 import User from "../models/User.js";
+import Star from "../models/Star.js";
 import Session from "../models/Session.js";
 
 const ACCESS_TTL = "15m";
@@ -43,6 +44,14 @@ async function applyDeviceContext(user, { tz, location } = {}) {
   if (changed) await user.save();
 }
 
+async function claimPendingStars(user) {
+  if (!user?.email) return;
+  await Star.updateMany(
+    { pendingOwnerEmail: user.email },
+    { $set: { owner: user._id }, $unset: { pendingOwnerEmail: "" } }
+  );
+}
+
 function toSafeUser(doc) {
   const u = typeof doc.toObject === "function" ? doc.toObject() : doc;
   const { _id, email, displayName, avatarUrl, tz, location, createdAt, updatedAt } = u;
@@ -58,6 +67,7 @@ export const AuthService = {
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({ email: emailLc, passwordHash, displayName });
     await applyDeviceContext(user, ctx);
+    await claimPendingStars(user);
 
     const accessToken = signAccess(user);
     const { sid, secret } = makeRefreshParts();
@@ -75,6 +85,7 @@ export const AuthService = {
     if (!ok) throw new Error("Invalid credentials");
 
     await applyDeviceContext(user, ctx);
+    await claimPendingStars(user);
 
     const accessToken = signAccess(user);
     const { sid, secret } = makeRefreshParts();
