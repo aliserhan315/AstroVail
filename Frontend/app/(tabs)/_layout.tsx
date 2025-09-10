@@ -1,89 +1,96 @@
-import React from "react";
-import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useMemo } from "react";
+import { View, Text, Pressable, Platform } from "react-native";
+import { Slot, usePathname, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const tabBg = "#0B0F1A";
-const active = "#B4CDED";
+const BG = "#0B0F1A";
+const ACTIVE_ICON = "#3B6BFF";
+const INACTIVE_ICON = "rgba(255,255,255,0.60)";
+const ACTIVE_BG = "rgba(59,107,255,0.28)";
+const BAR_HEIGHT = Platform.select({ ios: 86, android: 76, default: 72 });
 
-function IconWrap({
-  focused,
-  name,
-  color,
-}: {
-  focused: boolean;
-  name:
-    | keyof typeof Ionicons.glyphMap;
-  color: string;
-}) {
+type NavItem = {
+  key: "home" | "stars" | "events" | "gift" | "profile";
+  label: string;
+  href: string;
+  match: RegExp;
+  icon: string; 
+};
+
+const NAV: NavItem[] = [
+  { key: "home",    label: "Home",    href: "/(tabs)",         match: /^\/\(tabs\)\/?$/,       icon: "🏠" },
+  { key: "stars",   label: "Stars",   href: "/(tabs)/Stars",   match: /^\/\(tabs\)\/stars/,    icon: "🔭" },
+  { key: "events",  label: "Events",  href: "/(tabs)/events",  match: /^\/\(tabs\)\/events/,   icon: "📅" },
+  { key: "gift",    label: "Gift",    href: "/(tabs)/gift",    match: /^\/\(tabs\)\/gift/,     icon: "🎁" },
+  { key: "profile", label: "Profile", href: "/(tabs)/profile", match: /^\/\(tabs\)\/profile/,  icon: "👤" },
+];
+
+export default function FixedTabsLayout() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const hideBar = useMemo(() => {
+    return pathname.startsWith("/(tabs)/star/")
+        || pathname.startsWith("/(tabs)/(star)/");
+  }, [pathname]);
+
+  const contentBottomPad = (BAR_HEIGHT ?? 72) + (insets.bottom || 0);
+
   return (
-    <div
-      style={{
-        padding: focused ? 8 : 0,
-        borderRadius: 999,
-        backgroundColor: focused ? "rgba(33, 121, 255, 0.18)" : "transparent",
-      }}
-    >
-      <Ionicons name={name as any} size={22} color={color} />
-    </div>
-  );
-}
+    <View style={{ flex: 1, backgroundColor: "#000" }}>
+      <View style={{ flex: 1, paddingBottom: hideBar ? 0 : contentBottomPad }}>
+        <Slot />
+      </View>
 
-export default function TabsLayout() {
-  return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: active,
-        tabBarStyle: {
-          backgroundColor: tabBg,
-          borderTopColor: "transparent",
-          height: 64,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <IconWrap focused={focused} name={focused ? "home" : "home-outline"} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="stars"
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <IconWrap focused={focused} name={focused ? "search" : "search-outline"} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="events"
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <IconWrap focused={focused} name={focused ? "map" : "map-outline"} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="gift"
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <IconWrap focused={focused} name={focused ? "gift" : "gift-outline"} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <IconWrap focused={focused} name={focused ? "person" : "person-outline"} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen name="(star)" options={{ href: null }} />
-    </Tabs>
+      {!hideBar && (
+        <View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: BG,
+            borderTopColor: "transparent",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-around",
+            height: BAR_HEIGHT,
+            paddingTop: 8,
+            paddingBottom: Platform.select({ ios: 12 + insets.bottom, android: 12 + insets.bottom, default: 12 }),
+          }}
+        >
+          {NAV.map((item) => {
+            const active = item.match.test(pathname);
+            return (
+              <Pressable
+                key={item.key}
+                onPress={() => router.push(item.href)}
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: active ? ACTIVE_BG : "transparent",
+                }}
+              >
+                <Text style={{ fontSize: 20, marginBottom: 4 }}>
+                  {item.icon}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    color: active ? ACTIVE_ICON : INACTIVE_ICON,
+                    fontWeight: active ? "700" : "500",
+                  }}
+                >
+                  {item.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+    </View>
   );
 }

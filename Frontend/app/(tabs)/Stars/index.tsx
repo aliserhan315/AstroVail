@@ -38,7 +38,7 @@ export default function StarsScreen() {
   };
   const handleSubmit = (text: string) => loadStars(text);
   const handlePressStar = (star: Star) => {
-  router.push({ pathname: "/(tabs)/(star)/[starId]", params: { starId: star.id } });
+  router.push({ pathname: "/(tabs)/star/[starId]", params: { starId: star.id } });
 };
 
 

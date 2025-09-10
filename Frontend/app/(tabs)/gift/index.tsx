@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, StatusBar, Pressable } from "react-native";
+import { View, Text, ScrollView, StatusBar, Pressable, Alert, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import Background from "@/components/Background";
@@ -8,19 +8,23 @@ import LabeledInput from "@/components/ui/LabeledInput";
 import Button from "@/components/ui/Button";
 import { ButtonVariant } from "@/types/ui";
 import { useAppDispatch, useAppSelector } from "@/state/hooks";
-import { updateItem, removeItem } from "@/state/slices/cartSlice";
+import { updateItem, removeItem, clear as clearCart } from "@/state/slices/cartSlice";
 import { CertificateStyle } from "@/types/cart";
 import GiftStarPill from "@/components/gift/GiftStarPill";
 import styles from "./gift.styles";
+
+import { CartAPI, CheckoutAPI } from "@/lib/endpoint";
 
 export default function GiftScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const items = useAppSelector((s) => s.cart.items);
+
   const [mode, setMode] = useState<"gift" | "self">("gift");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const pills = items.map((it) => ({
     id: it.starId,
@@ -37,21 +41,85 @@ export default function GiftScreen() {
     );
   };
 
-  const onConfirm = () => {
-    items.forEach((it) =>
-      dispatch(
-        updateItem({
-          starId: it.starId,
-          patch: { recipientEmail: email, message },
-        })
-      )
-    );
-    router.push("/cart");
+  const syncServerCartIfNeeded = async () => {
+    if (!items.length) {
+      throw new Error("Your cart is empty.");
+    }
+    try {
+      const session = await CheckoutAPI.create();
+      return session;
+    } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 400) {
+        // server cart empty -> backfill from local
+        await Promise.all(items.map((it) => CartAPI.add(it.starId, it.qty ?? 1)));
+        return await CheckoutAPI.create();
+      }
+      throw e;
+    }
+  };
+
+  const onConfirm = async () => {
+    if (!items.length) {
+      Alert.alert("Cart is empty", "Please add a star first.");
+      return;
+    }
+    if (mode === "gift" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      Alert.alert("Invalid email", "Please enter a valid recipient email.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Save meta to Redux
+      items.forEach((it) =>
+        dispatch(
+          updateItem({
+            starId: it.starId,
+            patch: { recipientEmail: mode === "gift" ? email.trim() : undefined, message },
+          })
+        )
+      );
+
+      const session = await syncServerCartIfNeeded();
+      const checkoutUrl: string | undefined = session?.checkoutUrl;
+      const orderId: string | undefined = session?.orderId;
+
+      // DEV path: mock URL -> finalize immediately
+      if (orderId && checkoutUrl && /example\.com\/mock-checkout/.test(checkoutUrl)) {
+        await CheckoutAPI.finalize(orderId);
+        dispatch(clearCart());
+        Alert.alert("Success", "Your order is complete. The star is now yours!");
+        router.replace("/(tabs)");
+        return;
+      }
+
+      // Real Stripe checkout
+      if (checkoutUrl && /^https?:\/\//i.test(checkoutUrl)) {
+        await Linking.openURL(checkoutUrl);
+        return;
+      }
+
+      // Fallback: finalize if we have an order id
+      if (orderId) {
+        await CheckoutAPI.finalize(orderId);
+        dispatch(clearCart());
+        Alert.alert("Success", "Your order is complete. The star is now yours!");
+        router.replace("/(tabs)");
+        return;
+      }
+
+      throw new Error("Could not start checkout.");
+    } catch (e: any) {
+      Alert.alert("Checkout failed", e?.message ?? "Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const generateWithAI = () => {
     setMessage(
-      "Write you custom message here — a short, heartfelt note that travels with your star."
+      "Write your custom message here — a short, heartfelt note that travels with your star."
     );
   };
 
@@ -84,8 +152,8 @@ export default function GiftScreen() {
 
           <View style={styles.rowBetween}>
             <Text style={styles.rowLabel}>Chosen Stars ({items.length})</Text>
-            <Pressable onPress={() => router.push("/(tabs)/stars")} style={styles.addMoreBtn}>
-                <Text style={styles.addMoreText}>Add More Stars</Text>
+            <Pressable onPress={() => router.push("/(tabs)/Stars")} style={styles.addMoreBtn}>
+              <Text style={styles.addMoreText}>Add More Stars</Text>
             </Pressable>
           </View>
 
@@ -93,7 +161,12 @@ export default function GiftScreen() {
             <GiftStarPill
               key={s.id}
               star={s}
-              onRemove={() => dispatch(removeItem(s.id))}
+              onRemove={async () => {
+                dispatch(removeItem(s.id));
+                try {
+                  await CartAPI.remove(s.id);
+                } catch {}
+              }}
             />
           ))}
 
@@ -102,13 +175,15 @@ export default function GiftScreen() {
               <LabeledInput
                 value={email}
                 onChangeText={setEmail}
-                placeholder="Reception email"
+                placeholder="Recipient email"
+                keyboardType="email-address"
+                autoCapitalize="none"
                 style={{ marginTop: 8 }}
               />
               <LabeledInput
                 value={message}
                 onChangeText={setMessage}
-                placeholder="Write you customer message here"
+                placeholder="Write your custom message here"
                 multiline
                 rightButtonText="Generate with AI"
                 onRightButtonPress={generateWithAI}
@@ -128,9 +203,10 @@ export default function GiftScreen() {
           </View>
 
           <Button
-            title="Confirm Gift"
+            title={submitting ? "Processing..." : mode === "gift" ? "Send Gift" : "Buy Now"}
             variant={ButtonVariant.Primary}
             onPress={onConfirm}
+            disabled={submitting}
             style={styles.cta}
           />
         </View>

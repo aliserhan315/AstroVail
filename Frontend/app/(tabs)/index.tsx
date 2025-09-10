@@ -104,7 +104,7 @@ export default function HomeScreen() {
           stars={starsLite}
           onReposition={() => {}}
         />
-        <StarsList stars={stars} onPressStar={(s) => router.push({ pathname: "/(tabs)/(star)/[starId]", params: { starId: s.id } })} />
+        <StarsList stars={stars} onPressStar={(s) => router.push({ pathname: "/(tabs)/star/[starId]", params: { starId: s.id } })} />
 
       </ScrollView>
     </View>
