@@ -15,9 +15,15 @@ export default function StarsList({
       <View style={styles.head}>
         <Text style={styles.title}>Your Stars ({stars.length})</Text>
       </View>
-      {stars.map((s) => (
-        <StarItem key={s.id} star={s} onPress={onPressStar} />
-      ))}
+      {stars.length === 0 ? (
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyText}>You don't own a star yet</Text>
+        </View>
+      ) : (
+        stars.map((s) => (
+          <StarItem key={s.id} star={s} onPress={onPressStar} />
+        ))
+      )}
     </View>
   );
 }
