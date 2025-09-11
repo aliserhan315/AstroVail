@@ -1,0 +1,46 @@
+name: "CI (Frontend)"
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Frontend/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - 'Frontend/**'
+      - '.github/workflows/**'
+
+concurrency:
+  group: frontend-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  lint_typecheck:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --include=dev
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint -- --max-warnings=0

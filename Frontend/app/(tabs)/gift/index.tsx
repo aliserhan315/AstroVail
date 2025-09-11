@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useState } from "react";
 import { View, Text, ScrollView, StatusBar, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -13,27 +13,27 @@ import { CertificateStyle } from "@/types/cart";
 import GiftStarPill from "@/components/gift/GiftStarPill";
 import styles from "./gift.styles";
 
+import { CartAPI } from "@/lib/endpoint";
+
 export default function GiftScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const items = useAppSelector((s) => s.cart.items);
+
   const [mode, setMode] = useState<"gift" | "self">("gift");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  
 
-  const pills = useMemo(
-    () =>
-      items.map((it) => ({
-        id: it.starId,
-        name: it.starName,
-        mag: it.price != null ? String(it.price) : "0.03",
-        ra: "18h36m",
-        dec: "+38°47′",
-        constellation: "Lyra",
-      })),
-    [items]
-  );
+  const pills = items.map((it) => ({
+    id: it.starId,
+    name: it.starName,
+    mag: it.price != null ? String(it.price) : "0.03",
+    ra: "18h36m",
+    dec: "+38°47′",
+    constellation: "Lyra",
+  }));
 
   const setStyle = (style: CertificateStyle) => {
     items.forEach((it) =>
@@ -41,22 +41,26 @@ export default function GiftScreen() {
     );
   };
 
-  const onConfirm = () => {
-    items.forEach((it) =>
+  const onConfirm = async () => {
+    const patch = mode === "gift" ? { recipientEmail: email.trim() } : { recipientEmail: null };
+    // Add + update sequentially to avoid upsert race creating duplicate carts
+    for (const it of items) {
+      await CartAPI.add(it.starId, it.qty ?? 1);
+      await CartAPI.update(it.starId, patch);
+    }
+    for (const it of items) {
       dispatch(
         updateItem({
           starId: it.starId,
-          patch: { recipientEmail: email, message },
+          patch: { ...patch, message: mode === "gift" ? message : undefined },
         })
-      )
-    );
+      );
+    }
     router.push("/checkout");
   };
 
   const generateWithAI = () => {
-    setMessage(
-      "Write you custom message here — a short, heartfelt note that travels with your star."
-    );
+    setMessage("Write your custom message here — a short, heartfelt note that travels with your star.");
   };
 
   return (
@@ -88,7 +92,7 @@ export default function GiftScreen() {
 
           <View style={styles.rowBetween}>
             <Text style={styles.rowLabel}>Chosen Stars ({items.length})</Text>
-            <Pressable onPress={() => router.push("/(tabs)/stars")} style={styles.addMoreBtn}>
+            <Pressable onPress={() => router.push("/(tabs)/Stars")} style={styles.addMoreBtn}>
               <Text style={styles.addMoreText}>Add More Stars</Text>
             </Pressable>
           </View>
@@ -97,7 +101,12 @@ export default function GiftScreen() {
             <GiftStarPill
               key={s.id}
               star={s}
-              onRemove={() => dispatch(removeItem(s.id))}
+              onRemove={async () => {
+                dispatch(removeItem(s.id));
+                try {
+                  await CartAPI.remove(s.id);
+                } catch {}
+              }}
             />
           ))}
 
@@ -106,13 +115,15 @@ export default function GiftScreen() {
               <LabeledInput
                 value={email}
                 onChangeText={setEmail}
-                placeholder="Reception email"
+                placeholder="Recipient email"
+                keyboardType="email-address"
+                autoCapitalize="none"
                 style={{ marginTop: 8 }}
               />
               <LabeledInput
                 value={message}
                 onChangeText={setMessage}
-                placeholder="Write you custome message here"
+                placeholder="Write your custom message here"
                 multiline
                 rightButtonText="Generate with AI"
                 onRightButtonPress={generateWithAI}
@@ -132,7 +143,7 @@ export default function GiftScreen() {
           </View>
 
           <Button
-            title="Confirm Gift"
+            title={mode === "gift" ? "Confirm Gift" : "Buy Stars"}
             variant={ButtonVariant.Primary}
             onPress={onConfirm}
             style={styles.cta}

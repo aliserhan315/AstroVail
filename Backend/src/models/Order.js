@@ -5,6 +5,7 @@ const { Schema } = mongoose;
 const OrderItemSchema = new Schema({
   starId:     { type: Schema.Types.ObjectId, ref: "Star", required: true },
   priceCents: { type: Number, required: true },
+  recipientEmail: { type: String, default: null },
 }, { _id: false });
 
 const OrderSchema = new Schema({

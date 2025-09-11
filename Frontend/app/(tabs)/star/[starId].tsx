@@ -1,22 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-} from "react-native";
+import {ActivityIndicator,ScrollView,StyleSheet,Text,  View,  Pressable,} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 
 import Background from "@/components/Background";
 import { Colors } from "@/constants/Colors";
-import { StarsAPI } from "@/lib/endpoint";
+import { StarsAPI, CartAPI } from "@/lib/endpoint";
 import StarInfoCard from "@/components/Star/starInfoCard/StarInfoCard";
 import StoryCard from "@/components/Star/StoryCard/StoryCard";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import SectionCard from "@/components/ui/SectionCard";
+
+import { useAppDispatch } from "@/state/hooks";
+import { addOrUpdateItem } from "@/state/slices/cartSlice";
+import { CertificateStyle } from "@/types/cart";
 
 type Owner = { _id: string; name?: string | null };
 type StarDoc = {
@@ -27,7 +24,7 @@ type StarDoc = {
   magnitude?: number;
   ra?: number;
   dec?: number;
-  owner?: string | Owner | null; 
+  owner?: string | Owner | null;
 };
 
 type StarForCard = {
@@ -53,8 +50,8 @@ function toStarForCard(s: StarDoc): StarForCard {
 
 export default function StarDetailsScreen() {
   const { starId } = useLocalSearchParams();
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const dispatch = useAppDispatch();
 
   const [star, setStar] = useState<StarDoc | null>(null);
   const [loading, setLoading] = useState(true);
@@ -146,12 +143,32 @@ export default function StarDetailsScreen() {
         <Text style={styles.error}>{err ?? "Star not found."}</Text>
         <PrimaryButton
           text="Go Back"
-          onPress={() => (navigation as any).goBack()}
+          onPress={() => router.back()}
           style={{ marginTop: 12 }}
         />
       </View>
     );
   }
+
+  const handleAddToGift = async () => {
+    // 1) Local cart
+    dispatch(
+      addOrUpdateItem({
+        starId: star._id,
+        starName: star.displayName ?? star.baseName,
+        qty: 1,
+        certificateStyle: CertificateStyle.Classic,
+        price: 0.03,
+      })
+    );
+    try {
+      await CartAPI.add(star._id, 1);
+    } catch (e) {
+      console.warn("CartAPI.add failed", e);
+    }
+
+    router.push("/(tabs)/gift");
+  };
 
   return (
     <View style={styles.fill}>
@@ -163,18 +180,13 @@ export default function StarDetailsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Pressable
-          onPress={() => (navigation as any).goBack()}
-          style={{ marginBottom: 8 }}
-        >
+        <Pressable onPress={() => router.back()} style={{ marginBottom: 8 }}>
           <Text style={{ color: Colors.tint, fontSize: 16 }}>← Back</Text>
         </Pressable>
 
         <View style={{ alignItems: "center", marginBottom: 8 }}>
           <Text style={{ fontSize: 36, marginBottom: 6 }}>🌟</Text>
-          <Text
-            style={{ color: Colors.text, fontSize: 28, fontWeight: "800" }}
-          >
+          <Text style={{ color: Colors.text, fontSize: 28, fontWeight: "800" }}>
             {headerTitle}
           </Text>
           <Text style={{ color: Colors.tint, fontSize: 14, marginTop: 4 }}>
@@ -191,49 +203,21 @@ export default function StarDetailsScreen() {
             }`}
             body={story}
             footer={
-              <>
-                <PrimaryButton
-                  text="Check owner"
-                  onPress={() =>
-                    (navigation as any).navigate("OwnerProfile", {
-                      id: ownerId,
-                    })
-                  }
-                />
-                <PrimaryButton
-                  text="Check Similar Stars"
-                  variant="secondary"
-                  onPress={() =>
-                    (navigation as any).navigate("SimilarStars", {
-                      starId: star._id,
-                    })
-                  }
-                />
-              </>
+              <PrimaryButton
+                text="Check Similar Stars"
+                variant="secondary"
+                onPress={() => router.push("/(tabs)/Stars")}
+              />
             }
           />
         ) : (
           <SectionCard style={{ gap: 12, marginTop: 8 }}>
-            <PrimaryButton
-              text="Add To Cart"
-              onPress={() =>
-                (navigation as any).navigate("CartAdd", { starId: star._id })
-              }
-            />
-            <PrimaryButton
-              text="Send As Gift"
-              onPress={() =>
-                (navigation as any).navigate("GiftFlow", { starId: star._id })
-              }
-            />
+            <PrimaryButton text="Add To Gift" onPress={handleAddToGift} />
+            <PrimaryButton text="Send As Gift" onPress={handleAddToGift} />
             <PrimaryButton
               text="Check Similar Stars"
               variant="secondary"
-              onPress={() =>
-                (navigation as any).navigate("SimilarStars", {
-                  starId: star._id,
-                })
-              }
+              onPress={() => router.push("/(tabs)/Stars")}
             />
           </SectionCard>
         )}

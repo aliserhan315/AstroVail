@@ -29,6 +29,7 @@ export const StarsAPI = {
 export const CartAPI = {
   get() { return api.get("/cart").then(r => r.data.data); },
   add(starId: string, qty = 1) { return api.post("/cart/items", { starId, qty }).then(r => r.data.data); },
+  update(starId: string, patch: any) { return api.patch(`/cart/items/${starId}`, patch).then(r => r.data.data); },
   remove(starId: string) { return api.delete(`/cart/items/${starId}`).then(r => r.data.data); },
 };
 
@@ -49,4 +50,12 @@ export const MeAPI = {
   get() { return api.get("/me").then(r => r.data.data); },
   updateProfile(payload: any) { return api.patch("/me/profile", payload).then(r => r.data.data); },
   updateDevice(payload: any) { return api.patch("/me/device", payload).then(r => r.data.data); },
+};
+export const CheckoutAPI = {
+  create() {
+    return api.post("/checkout/create").then(r => r.data.data);
+  },
+  finalize(orderId: string) {
+    return api.post("/checkout/finalize", { orderId }).then(r => r.data.data);
+  },
 };
