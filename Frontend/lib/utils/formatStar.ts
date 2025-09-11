@@ -1,4 +1,4 @@
-import { Star } from "@/components/Home/StarItem";
+import { Star } from "@/components/Home/StarItem/StarItem";
 
 export function formatRA(ra: number): string {
   const totalHours = ra / 15;
