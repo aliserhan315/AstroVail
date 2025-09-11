@@ -59,15 +59,6 @@ export default function Login() {
           <Image source={LOGO} style={styles.logo} />
           <Text style={styles.title}>Sign in to your{"\n"}Account</Text>
 
-          <View style={styles.subRow}>
-            <Text style={styles.hint}>Don’t have an account?</Text>
-            <Link href={{ pathname: "/(auth)/register" }} asChild>
-              <TouchableOpacity>
-                <Text style={styles.link}>Sign Up</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
-
           <View style={styles.form}>
             <View style={styles.inputWrap}>
               <Text style={styles.inputLabel}>Email</Text>
@@ -100,8 +91,17 @@ export default function Login() {
               <Text style={styles.smallLinkText}>Forgot Your Password ?</Text>
             </TouchableOpacity>
 
+            <View style={styles.subRow}>
+              <Text style={styles.hint}>Don’t have an account?</Text>
+              <Link href={{ pathname: "/(auth)/register" }} asChild>
+                <TouchableOpacity>
+                  <Text style={styles.link}>Sign Up</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
+
             <Button
-              title={loading ? "Logging in…" : "Log In"}
+              title={loading ? "Logging in�?�" : "Log In"}
               onPress={submit}
               loading={loading}
               variant={ButtonVariant.Primary}
@@ -113,3 +113,4 @@ export default function Login() {
     </View>
   );
 }
+
