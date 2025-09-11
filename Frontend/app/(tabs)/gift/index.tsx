@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, StatusBar, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -31,7 +31,7 @@ export default function GiftScreen() {
     name: it.starName,
     mag: it.price != null ? String(it.price) : "0.03",
     ra: "18h36m",
-    dec: "+38°47′",
+    dec: "+38�47'",
     constellation: "Lyra",
   }));
 
@@ -63,7 +63,7 @@ export default function GiftScreen() {
   };
 
   const generateWithAI = () => {
-    setMessage("Write your custom message here — a short, heartfelt note that travels with your star.");
+    setMessage("Write your custom message here - a short, heartfelt note that travels with your star.");
   };
 
   return (
@@ -156,3 +156,4 @@ export default function GiftScreen() {
     </View>
   );
 }
+
