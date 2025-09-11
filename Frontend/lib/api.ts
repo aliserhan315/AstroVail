@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosInstance } from "axios";
 import { store } from "@/state/store";
 import { tokenRefreshed, logout } from "@/state/slices/authSlice";
 
-const ROOT = "http://SERHAN-107097:3000";
+const ROOT = "http://192.168.1.104:3000";
 export const BASE_URL = `${ROOT.replace(/\/$/, "")}/api`;
 
 let refreshingPromise: Promise<string | null> | null = null;

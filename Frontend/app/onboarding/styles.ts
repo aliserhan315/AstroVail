@@ -68,12 +68,16 @@ glass: {
 
   ctaWrap: {
     borderRadius: 16,
-    paddingTop: 10,
     overflow: "hidden",
     alignSelf: "center",
     width: "70%",
   },
-  ctaGradient: { paddingVertical: 14, alignItems: "center", justifyContent: "center" },
+  ctaGradient: {
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 16,
+  },
   ctaText: { color: "#FFFFFF", fontWeight: "800", fontSize: 16 },
 
   dotsRow: {
