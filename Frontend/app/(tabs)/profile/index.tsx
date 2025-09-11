@@ -136,7 +136,7 @@ export default function ProfileScreen() {
           onEnableNotifications={enableNotifications}
           loc={{ saving: locSaving, enabled: locEnabled }}
           onEnableLocation={enableLocation}
-          onOpenCertificates={() => router.push("/certificate")}
+          onOpenCertificates={() => router.push("/")}
         />
       </View>
     </View>

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Cart from "../models/Cart.js";
 import Star from "../models/Star.js";
 import Order from "../models/Order.js";
+import User from "../models/User.js";
 import { getStripe, isStripeEnabled } from "../lib/stripe.js";
 
 export const CheckoutService = {
@@ -11,14 +12,14 @@ export const CheckoutService = {
       throw Object.assign(new Error("Cart is empty"), { status: 400 });
     }
 
-    const starIds = cart.items.map(i => i.starId);
+    const starIds = cart.items.map((i) => i.starId);
     const stars = await Star.find({ _id: { $in: starIds } }).lean();
 
-    const taken = stars.filter(s => s.owner);
+    const taken = stars.filter((s) => s.owner);
     if (taken.length) {
       throw Object.assign(new Error("Some items already purchased"), {
         status: 409,
-        details: taken.map(t => t._id),
+        details: taken.map((t) => t._id),
       });
     }
 
@@ -26,7 +27,11 @@ export const CheckoutService = {
 
     const order = await Order.create({
       userId,
-      items: cart.items.map(i => ({ starId: i.starId, priceCents: i.priceCents })),
+      items: cart.items.map((i) => ({
+        starId: i.starId,
+        priceCents: i.priceCents,
+        recipientEmail: i.recipientEmail || null,
+      })),
       amount,
       currency: "USD",
       status: "requires_payment",
@@ -41,7 +46,7 @@ export const CheckoutService = {
         mode: "payment",
         success_url: `${process.env.APP_URL}/checkout/success?o=${order._id}`,
         cancel_url: `${process.env.APP_URL}/checkout/cancel?o=${order._id}`,
-        line_items: cart.items.map(i => ({
+        line_items: cart.items.map((i) => ({
           price_data: {
             currency: "usd",
             product_data: { name: "Star" },
@@ -51,13 +56,9 @@ export const CheckoutService = {
         })),
         metadata: { orderId: String(order._id) },
       });
-
-      stripeSessionId = session.id;
       checkoutUrl = session.url;
-      await Order.updateOne(
-        { _id: order._id },
-        { $set: { stripeSessionId, status: "processing" } }
-      );
+      stripeSessionId = session.id;
+      await Order.updateOne({ _id: order._id }, { $set: { stripePaymentIntentId: session.id, status: "processing" } });
     }
 
     return {
@@ -82,14 +83,31 @@ export const CheckoutService = {
       }
 
       const userId = order.userId;
-      const starIds = order.items.map(i => i.starId);
+      let success = true;
+      for (const item of order.items) {
+        let owner = userId;
+        let pendingOwnerEmail;
+        const email = item.recipientEmail ? String(item.recipientEmail).trim().toLowerCase() : null;
+        if (email) {
+          const existing = await User.findOne({ email }).lean();
+          if (existing) {
+            owner = existing._id;
+          } else {
+            owner = null;
+            pendingOwnerEmail = email;
+          }
+        }
+        const res = await Star.updateOne(
+          { _id: item.starId, owner: null, pendingOwnerEmail: null },
+          { $set: { owner, pendingOwnerEmail } }
+        ).session(session);
+        if (res.modifiedCount !== 1) {
+          success = false;
+          break;
+        }
+      }
 
-      const res = await Star.updateMany(
-        { _id: { $in: starIds }, owner: null },
-        { $set: { owner: userId } }
-      ).session(session);
-
-      if (res.modifiedCount !== starIds.length) {
+      if (!success) {
         await Order.updateOne(
           { _id: orderId },
           { $set: { status: "failed_sold_out" } }
@@ -97,6 +115,8 @@ export const CheckoutService = {
         await session.commitTransaction();
         return await Order.findById(orderId).lean();
       }
+
+      const starIds = order.items.map((i) => i.starId);
 
       await Order.updateOne(
         { _id: orderId },

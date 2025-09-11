@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Star from "../models/Star.js";
+import User from "../models/User.js";
 
 const ALLOWED_STYLES = ["classic", "modern", "cosmic"];
 
@@ -27,7 +28,7 @@ export const StarService = {
       sort,
     } = {}
   ) {
-    const baseFilter = {};
+    const baseFilter = { owner: null, pendingOwnerEmail: null };
     if (constellation) baseFilter.constellation = constellation;
     if (magnitudeMax !== undefined) baseFilter.magnitude = { $lte: Number(magnitudeMax) };
     if (toBool(nakedEye) !== undefined) baseFilter.nakedEye = !!toBool(nakedEye);
@@ -36,7 +37,7 @@ export const StarService = {
     // No search term: return random picks (respect filters), default 25
     if (!q || !q.trim()) {
       const size = Math.min(100, toInt(limit, 25)); // was 50
-      const randomFilter = { ...baseFilter, owner: null };
+      const randomFilter = { ...baseFilter };
 
       const [items, total] = await Promise.all([
         Star.aggregate([{ $match: randomFilter }, { $sample: { size } }]),
@@ -154,6 +155,7 @@ export const StarService = {
       nakedEye,
       binocular,
       isGifted,
+      recipientEmail,
     } = payload;
 
     if (!baseName && !displayName) {
@@ -168,8 +170,22 @@ export const StarService = {
       throw err;
     }
 
+    let owner = ownerId || null;
+    let pendingOwnerEmail;
+    const giftEmail = typeof recipientEmail === "string" ? recipientEmail.trim().toLowerCase() : null;
+
+    if (giftEmail) {
+      const existing = await User.findOne({ email: giftEmail }).lean();
+      if (existing) {
+        owner = existing._id;
+      } else {
+        owner = null;
+        pendingOwnerEmail = giftEmail;
+      }
+    }
+
     const star = await Star.create({
-      owner: ownerId || null,
+      owner,
       baseName,
       displayName,
       ra,
@@ -180,7 +196,8 @@ export const StarService = {
       catalogId,
       nakedEye: !!toBool(nakedEye),
       binocular: !!toBool(binocular),
-      isGifted: !!toBool(isGifted),
+      isGifted: !!toBool(isGifted) || !!giftEmail,
+      pendingOwnerEmail,
     });
     return star.toObject();
   },

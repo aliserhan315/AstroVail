@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TextInput, Pressable, ViewStyle } from "react-native";
+import { View, Text, TextInput, Pressable, ViewStyle, TextInputProps } from "react-native";
 import styles from "./LabeledInput.styles";
 
 export default function LabeledInput({
@@ -11,6 +11,8 @@ export default function LabeledInput({
   rightButtonText,
   onRightButtonPress,
   style,
+  keyboardType,
+  autoCapitalize,
 }: {
   label?: string;
   value: string;
@@ -20,6 +22,8 @@ export default function LabeledInput({
   rightButtonText?: string;
   onRightButtonPress?: () => void;
   style?: ViewStyle;
+  keyboardType?: TextInputProps["keyboardType"];
+  autoCapitalize?: TextInputProps["autoCapitalize"];
 }) {
   return (
     <View style={style}>
@@ -33,6 +37,8 @@ export default function LabeledInput({
           placeholderTextColor="rgba(255,255,255,0.6)"
           style={[styles.input, multiline && styles.inputMultiline]}
           multiline={multiline}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
         />
 
         {rightButtonText ? (
