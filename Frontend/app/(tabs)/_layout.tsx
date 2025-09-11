@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, Pressable, Platform } from "react-native";
 import { Slot, usePathname, useRouter } from "expo-router";
+import type { Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const BG = "#0B0F1A";
@@ -12,7 +13,7 @@ const BAR_HEIGHT = Platform.select({ ios: 86, android: 76, default: 72 });
 type NavItem = {
   key: "home" | "stars" | "events" | "gift" | "profile";
   label: string;
-  href: string;
+  href: Href;
   match: RegExp;
   icon: string; 
 };

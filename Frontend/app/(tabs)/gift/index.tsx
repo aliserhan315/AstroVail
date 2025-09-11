@@ -42,7 +42,10 @@ export default function GiftScreen() {
   };
 
   const onConfirm = async () => {
-    const patch = mode === "gift" ? { recipientEmail: email.trim() } : { recipientEmail: null };
+    const patch =
+      mode === "gift"
+        ? { recipientEmail: email.trim() || undefined }
+        : { recipientEmail: undefined };
     // Add + update sequentially to avoid upsert race creating duplicate carts
     for (const it of items) {
       await CartAPI.add(it.starId, it.qty ?? 1);
