@@ -6,9 +6,20 @@ const isValidIanaTz = (tz) => typeof tz === "string" && DateTime.now().setZone(t
 export const UserService = {
   async me(id) { return User.findById(id).lean(); },
 
-  async updateProfile(id, { displayName, avatarUrl }) {
+  async updateProfile(id, { displayName, avatarUrl, firstName, lastName }) {
     const patch = {};
-    if (typeof displayName === "string") patch.displayName = displayName.trim().slice(0, 80);
+    const dnStr = typeof displayName === "string" ? displayName.trim() : undefined;
+    const fStr = typeof firstName === "string" ? firstName.trim() : undefined;
+    const lStr = typeof lastName === "string" ? lastName.trim() : undefined;
+    if (dnStr != null) patch.displayName = dnStr.slice(0, 80);
+    if (fStr != null) patch.firstName = fStr.slice(0, 80);
+    if (lStr != null) patch.lastName = lStr.slice(0, 80);
+    if ((fStr != null || lStr != null) && dnStr == null) {
+      const parts = [];
+      if (fStr != null) parts.push(fStr);
+      if (lStr != null) parts.push(lStr);
+      patch.displayName = parts.join(" ").slice(0, 80);
+    }
     if (typeof avatarUrl === "string")   patch.avatarUrl   = avatarUrl.trim();
     return User.findByIdAndUpdate(id, { $set: patch }, { new: true }).lean();
   },

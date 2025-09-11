@@ -28,7 +28,9 @@ export default function Register() {
     setErr(null);
     try {
       await AuthAPI.register({
-        name: `${first} ${last}`.trim(),
+        firstName: first.trim(),
+        lastName: last.trim(),
+        displayName: `${first} ${last}`.trim(),
         email,
         password: pw,
       });

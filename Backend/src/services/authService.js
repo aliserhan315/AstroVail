@@ -54,18 +54,25 @@ async function claimPendingStars(user) {
 
 function toSafeUser(doc) {
   const u = typeof doc.toObject === "function" ? doc.toObject() : doc;
-  const { _id, email, displayName, avatarUrl, tz, location, createdAt, updatedAt } = u;
-  return { _id, email, displayName, avatarUrl, tz, location, createdAt, updatedAt };
+  const { _id, email, firstName, lastName, displayName, avatarUrl, tz, location, createdAt, updatedAt } = u;
+  return { _id, email, firstName, lastName, displayName, avatarUrl, tz, location, createdAt, updatedAt };
 }
 
 export const AuthService = {
-  async register({ email, password, displayName }, ctx = {}) {
+  async register({ email, password, displayName, firstName, lastName, name }, ctx = {}) {
     const emailLc = email.trim().toLowerCase();
     const existing = await User.findOne({ email: emailLc });
     if (existing) throw new Error("Email already in use");
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ email: emailLc, passwordHash, displayName });
+    const f = typeof firstName === "string" && firstName.trim() ? firstName.trim() : undefined;
+    const l = typeof lastName === "string" && lastName.trim() ? lastName.trim() : undefined;
+    let dn = typeof displayName === "string" && displayName.trim() ? displayName.trim() : undefined;
+    const nm = typeof name === "string" && name.trim() ? name.trim() : undefined;
+    if (!dn && (f || l)) dn = `${f ?? ""} ${l ?? ""}`.trim();
+    if (!dn && nm) dn = nm;
+
+    const user = await User.create({ email: emailLc, passwordHash, firstName: f, lastName: l, displayName: dn });
     await applyDeviceContext(user, ctx);
     await claimPendingStars(user);
 
