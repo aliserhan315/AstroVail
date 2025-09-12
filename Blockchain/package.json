@@ -1,0 +1,30 @@
+{
+  "name": "blockchain",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "hardhat build",
+    "compile": "hardhat compile",
+    "test": "hardhat test nodejs",
+    "node": "hardhat node",
+    "ignition:deploy:localhost": "hardhat ignition deploy ignition/modules/StarModule.ts --network localhost --parameters ignition/parameters.json",
+    "ignition:deploy:baseSepolia": "hardhat ignition deploy ignition/modules/StarModule.ts --network baseSepolia --parameters ignition/parameters.json --verify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^17.2.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.3",
+    "@nomicfoundation/hardhat-verify": "^3.0.2",
+    "@types/node": "^24.3.1",
+    "hardhat": "^3.0.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}

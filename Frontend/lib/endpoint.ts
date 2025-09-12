@@ -1,7 +1,14 @@
 import api from "@/lib/api";
 
 export const AuthAPI = {
-  async register(payload: { name: string; email: string; password: string }) {
+  async register(payload: {
+    firstName?: string;
+    lastName?: string;
+    displayName?: string;
+    name?: string; // backward compat
+    email: string;
+    password: string;
+  }) {
     const { data } = await api.post("/auth/register", payload);
     return data.data;
   },

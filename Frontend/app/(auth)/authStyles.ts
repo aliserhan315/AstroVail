@@ -30,8 +30,8 @@ export default StyleSheet.create({
   logo: { width: 56, height: 56, marginBottom: 14, resizeMode: "contain" },
   title: {
     color: COLORS.text,
-    fontSize: 30,
-    lineHeight: 34,
+    fontSize: 26,
+    lineHeight: 30,
     textAlign: "center",
     fontWeight: "800",
   },

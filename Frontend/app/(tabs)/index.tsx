@@ -19,6 +19,16 @@ function firstNameFromDisplay(displayName?: string | null) {
   const first = displayName.trim().split(/\s+/).filter(Boolean)[0];
   return first || "Explorer";
 }
+function getFriendlyFirst(me?: any, fallbackUser?: any) {
+  return (
+    (me?.firstName && String(me.firstName)) ||
+    (fallbackUser?.firstName && String(fallbackUser.firstName)) ||
+    firstNameFromDisplay(me?.displayName) ||
+    firstNameFromDisplay((me as any)?.name) ||
+    firstNameFromDisplay(fallbackUser?.displayName) ||
+    "Explorer"
+  );
+}
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -27,7 +37,7 @@ export default function HomeScreen() {
 
   const user = useAppSelector((s) => s.auth.user);
 
-  const [name, setName] = useState<string>(firstNameFromDisplay(user?.displayName) || "Explorer");
+  const [name, setName] = useState<string>(getFriendlyFirst(undefined, user));
   const [stars, setStars] = useState<Star[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -36,12 +46,7 @@ export default function HomeScreen() {
     const me = await MeAPI.get().catch(() => null);
     const mine = await StarsAPI.mine().catch(() => ({ items: [] as Star[] }));
 
-    const n =
-      firstNameFromDisplay(me?.displayName) ||
-      firstNameFromDisplay((me as any)?.name) ||
-      firstNameFromDisplay(user?.displayName) ||
-      "Explorer";
-    setName(n);
+    setName(getFriendlyFirst(me, user));
 
     const items = (mine?.items ?? []).map((s: any) => ({
       id: String(s.id ?? s._id),
@@ -53,7 +58,7 @@ export default function HomeScreen() {
     })) as Star[];
 
     setStars(items);
-  }, [user?.displayName]);
+  }, [user]);
 
   useEffect(() => { load(); }, [load]);
 

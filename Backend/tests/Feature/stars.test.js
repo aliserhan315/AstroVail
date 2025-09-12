@@ -1,5 +1,5 @@
 import { api, registerUser, auth } from "../helpers.js";
-import Star from "../../src/models/Star.js";
+import Star from "../../src/modules/star/star.model.js";
 
 beforeAll(async () => {
   await Star.collection.createIndex({
