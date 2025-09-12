@@ -1,5 +1,5 @@
 import { api, registerUser, auth } from "../helpers.js";
-import Notification from "../../src/models/Notification.js";
+import Notification from "../../src/modules/notification/notification.model.js";
 import mongoose from "mongoose";
 
 describe("Notifications", () => {
