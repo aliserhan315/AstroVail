@@ -17,7 +17,7 @@ export default function StarsList({
       </View>
       {stars.length === 0 ? (
         <View style={styles.emptyWrap}>
-          <Text style={styles.emptyText}>You don't own a star yet</Text>
+          <Text style={styles.emptyText}>You do not own a star yet</Text>
         </View>
       ) : (
         stars.map((s) => (
