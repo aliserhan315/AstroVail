@@ -92,6 +92,10 @@ export default function NotificationsScreen() {
         <View style={{ alignItems: "center", marginTop: 24 }}>
           <ActivityIndicator color="#fff" />
         </View>
+      ) : items.length === 0 ? (
+        <View style={{ alignItems: "center", marginTop: 32, paddingHorizontal: 16 }}>
+          <Text style={{ color: "#9CA3AF", fontSize: 14 }}>No notifications yet</Text>
+        </View>
       ) : (
         <FlatList
           data={items}

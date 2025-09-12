@@ -28,7 +28,9 @@ export default function Register() {
     setErr(null);
     try {
       await AuthAPI.register({
-        name: `${first} ${last}`.trim(),
+        firstName: first.trim(),
+        lastName: last.trim(),
+        displayName: `${first} ${last}`.trim(),
         email,
         password: pw,
       });
@@ -53,14 +55,7 @@ export default function Register() {
           <Image source={LOGO} style={styles.logo} />
           <Text style={styles.title}>Sign Up to AstroVail</Text>
 
-          <View style={styles.subRow}>
-            <Text style={styles.hint}>Already have an account?</Text>
-            <Link href={{ pathname: "/(auth)/login" }} asChild>
-              <TouchableOpacity>
-                <Text style={styles.link}>Sign In</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
+          
 
           <View style={styles.form}>
             <View style={styles.row}>
@@ -115,6 +110,15 @@ export default function Register() {
             </View>
 
             {err ? <Text style={{ color: "#FCA5A5", marginTop: 8 }}>{err}</Text> : null}
+
+            <View style={styles.subRow}>
+              <Text style={styles.hint}>Already have an account?</Text>
+              <Link href={{ pathname: "/(auth)/login" }} asChild>
+                <TouchableOpacity>
+                  <Text style={styles.link}>Sign In</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
 
             <Button
               title={loading ? "Registering…" : "Register"}

@@ -1,5 +1,5 @@
 import { api, registerUser, auth } from "../helpers.js";
-import Event from "../../src/models/Event.js";
+import Event from "../../src/modules/events/events.model.js";
 
 describe("Events", () => {
   test("lists events", async () => {

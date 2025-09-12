@@ -14,7 +14,7 @@ import { useAppDispatch } from "@/state/hooks";
 import { setUser } from "@/state/slices/authSlice";
 import {styles} from "./ProfileScreen.styles";
 
-type Me = { _id: string; email: string; displayName?: string | null; avatarUrl?: string | null };
+type Me = { _id: string; email: string; firstName?: string | null; lastName?: string | null; displayName?: string | null; avatarUrl?: string | null };
 
 function firstNameFromDisplay(displayName?: string | null) {
   if (!displayName) return "User Name";
@@ -110,7 +110,7 @@ export default function ProfileScreen() {
     }
   }
 
-  const name = firstNameFromDisplay(me?.displayName);
+  const name = me?.firstName ? me.firstName : firstNameFromDisplay(me?.displayName);
 
   return (
     <View style={styles.root}>
