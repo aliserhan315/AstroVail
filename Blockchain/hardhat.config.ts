@@ -1,55 +1,25 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-import "@nomicfoundation/hardhat-verify";
-import * as dotenv from "dotenv";
+import { defineConfig } from "hardhat/config";
+import toolbox from "@nomicfoundation/hardhat-toolbox-viem";
+import verify from "@nomicfoundation/hardhat-verify";
+import "dotenv/config";
 
-dotenv.config();
+const { DEPLOYER_PK, RPC_BASE_SEPOLIA, ETHERSCAN_API_KEY } = process.env as Record<string, string | undefined>;
 
-const accounts = process.env.DEPLOYER_PK ? [process.env.DEPLOYER_PK] : [];
+const accounts = DEPLOYER_PK && DEPLOYER_PK.length > 0
+  ? [DEPLOYER_PK.startsWith("0x") ? DEPLOYER_PK : `0x${DEPLOYER_PK}`]
+  : [];
 
-const config: HardhatUserConfig = {
-  solidity: {
-    version: "0.8.24",
-    settings: { optimizer: { enabled: true, runs: 200 } },
-  },
+export default defineConfig({
+  solidity: { version: "0.8.24", settings: { optimizer: { enabled: true, runs: 200 } } },
+  plugins: [toolbox, verify],
   networks: {
+    localhost: { chainId: 31337 },
     baseSepolia: {
-      type: "http",
-      url: process.env.RPC_BASE_SEPOLIA || "",
+      url: RPC_BASE_SEPOLIA || "https://sepolia.base.org",
       accounts,
       chainId: 84532,
     },
-    polygonAmoy: {
-      type: "http",
-      url: process.env.RPC_POLYGON_AMOY || "",
-      accounts,
-      chainId: 80002,
-    },
   },
-  etherscan: {
-    apiKey: {
-      baseSepolia: process.env.ETHERSCAN_API_KEY || "",
-      polygonAmoy: process.env.POLYGONSCAN_API_KEY || "",
-    },
-    customChains: [
-      {
-        network: "baseSepolia",
-        chainId: 84532,
-        urls: {
-          apiURL: "https://api-sepolia.basescan.org/api",
-          browserURL: "https://sepolia.basescan.org",
-        },
-      },
-      {
-        network: "polygonAmoy",
-        chainId: 80002,
-        urls: {
-          apiURL: "https://api-amoy.polygonscan.com/api",
-          browserURL: "https://amoy.polygonscan.com",
-        },
-      },
-    ],
-  },
-};
+  verify: { etherscan: { apiKey: ETHERSCAN_API_KEY || "" } },
+});
 
-export default config;

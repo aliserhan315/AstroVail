@@ -7,7 +7,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "outDir": "dist",
-    "types": ["node", "hardhat", "chai", "mocha"],
+    "types": ["node", "hardhat"],
     "skipLibCheck": true
   },
   "include": ["./hardhat.config.ts", "scripts", "test", "typechain-types", "types"],

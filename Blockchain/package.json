@@ -4,12 +4,12 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "build": "hardhat build",
     "compile": "hardhat compile",
-    "test": "hardhat test",
-    "deploy:baseSepolia": "hardhat run --network baseSepolia scripts/deploy.ts",
-    "deploy:polygonAmoy": "hardhat run --network polygonAmoy scripts/deploy.ts",
-    "verify:baseSepolia": "hardhat verify --network baseSepolia",
-    "verify:polygonAmoy": "hardhat verify --network polygonAmoy"
+    "test": "hardhat test nodejs",
+    "node": "hardhat node",
+    "ignition:deploy:localhost": "hardhat ignition deploy ignition/modules/StarModule.ts --network localhost --parameters ignition/parameters.json",
+    "ignition:deploy:baseSepolia": "hardhat ignition deploy ignition/modules/StarModule.ts --network baseSepolia --parameters ignition/parameters.json --verify"
   },
   "keywords": [],
   "author": "",
@@ -20,8 +20,8 @@
     "dotenv": "^17.2.2"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
-    "@nomicfoundation/hardhat-verify": "^2.1.1",
+    "@nomicfoundation/hardhat-ignition": "^3.0.3",
+    "@nomicfoundation/hardhat-verify": "^3.0.2",
     "@types/node": "^24.3.1",
     "hardhat": "^3.0.6",
     "ts-node": "^10.9.2",

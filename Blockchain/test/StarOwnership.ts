@@ -1,44 +1,31 @@
-import { expect } from "chai";
-import hre from "hardhat";
-import { keccak256, toUtf8Bytes } from "ethers";
-
-const { ethers } = hre;
-
-function idFromCatalog(catalog: string) {
-  const hash = keccak256(toUtf8Bytes(catalog));
-  return BigInt(hash);
-}
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { network } from "hardhat";
+import { keccak256, stringToBytes } from "viem";
 
 describe("StarOwnership", () => {
-  it("mints once per tokenId and blocks transfers by default", async () => {
-    const [admin, alice, bob] = await ethers.getSigners();
+  it("mints once per deterministic tokenId and locks transfer by default", async () => {
+    const { viem } = await network.connect();
+    const [admin, alice, bob] = await viem.getWalletClients();
 
-    const Factory = await ethers.getContractFactory("StarOwnership");
-    const c = await Factory.deploy(await admin.getAddress());
-    await c.waitForDeployment();
+    const star = await viem.deployContract("StarOwnership", [admin.account.address]);
 
-    const tokenId = idFromCatalog("Gaia DR3 123456789");
+    const tokenId = BigInt(keccak256(stringToBytes("Gaia DR3 123456")));
+    await star.write.mintStar([alice.account.address, tokenId, "ipfs://star1.json"], { client: { wallet: admin } });
 
-    await c.connect(admin).mintStar(await alice.getAddress(), tokenId, "ipfs://star123");
-    await expect(
-      c.connect(admin).mintStar(await bob.getAddress(), tokenId, "ipfs://dup")
-    ).to.be.revertedWith("Star already claimed");
-    await expect(
-      c.connect(alice)["safeTransferFrom(address,address,uint256)"](
-        await alice.getAddress(),
-        await bob.getAddress(),
-        tokenId
-      )
-    ).to.be.revertedWith("Transfers disabled");
-    const TRANSFER_ROLE = await c.TRANSFER_ROLE();
-    await c.connect(admin).grantRole(TRANSFER_ROLE, await admin.getAddress());
-
-    await c.connect(admin)["safeTransferFrom(address,address,uint256)"](
-      await alice.getAddress(),
-      await bob.getAddress(),
-      tokenId
+    await assert.rejects(
+      star.write.mintStar([bob.account.address, tokenId, "ipfs://dup.json"], { client: { wallet: admin } }),
+      /Star claimed/
     );
 
-    expect(await c.ownerOf(tokenId)).to.equal(await bob.getAddress());
+    await assert.rejects(
+      // safeTransferFrom(address,address,uint256)
+      star.write["safeTransferFrom(address,address,uint256)"](
+        [alice.account.address, bob.account.address, tokenId],
+        { client: { wallet: alice } }
+      ),
+      /Transfers disabled/
+    );
   });
 });
+

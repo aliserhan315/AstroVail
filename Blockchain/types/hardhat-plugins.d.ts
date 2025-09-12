@@ -1,8 +1,5 @@
-import "@nomicfoundation/hardhat-ethers";
-import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-toolbox-viem";
 
 declare module "hardhat/types/runtime" {
-  interface HardhatRuntimeEnvironment {
-    ethers: any;
-  }
+  // Augmentations for viem are provided by the toolbox; no custom additions required here.
 }
