@@ -58,7 +58,7 @@ export default function HomeScreen() {
     })) as Star[];
 
     setStars(items);
-  }, [user?.displayName, user?.firstName]);
+  }, [user]);
 
   useEffect(() => { load(); }, [load]);
 
