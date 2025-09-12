@@ -7,6 +7,8 @@ import { connectDB } from './db.js';
 import api from './routes/index.routes.js';
 import webhooksRouter from './modules/checkout/stripeWebhook.routes.js';
 import { config } from './config.js';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './docs/swagger.js';
 
 const app = express();
 
@@ -28,6 +30,8 @@ const apiLimiter = rateLimit({
 
 app.get('/', (_req, res) => res.json({ message: 'AstroVail API alive' }));
 app.use('/api', apiLimiter, api);
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api/openapi.json', (_req, res) => res.json(swaggerSpec));
 
 try {
   await connectDB();

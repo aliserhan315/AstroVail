@@ -12,6 +12,7 @@
     "dev": "nodemon src/server.js",
     "import:gaia": "node scripts/seed-gaia.js",
     "start": "node src/server.js",
+    "docs": "node -e \"console.log('OpenAPI at /api/docs')\"",
     "enrich:names": "node scripts/enrich-names-simbad.js",
     "format": "prettier --write .",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
