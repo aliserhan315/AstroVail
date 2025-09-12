@@ -1,5 +1,5 @@
-import Notification from "../models/Notification.js";
-import { ymdUTC } from "../utils/dates.js";
+import Notification from "./notification.model.js";
+import { ymdUTC } from "../../utils/dates.js";
 
 export async function createEventNotificationOncePerDay({ userId, eventDoc, title, body, when = new Date() }) {
   const day = ymdUTC(when);

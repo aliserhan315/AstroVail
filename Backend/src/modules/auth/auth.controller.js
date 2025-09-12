@@ -1,5 +1,5 @@
-import { AuthService } from '../services/authService.js';
-import { success, error } from '../utils/response.js';
+import { AuthService } from './auth.service.js';
+import { success, error } from '../../utils/response.js';
 
 export async function register(req, res) {
   try {

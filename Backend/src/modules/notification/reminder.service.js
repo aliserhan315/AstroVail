@@ -1,6 +1,6 @@
-import Event from "../models/Event.js";
-import EventReminder from "../models/EventReminder.js";
-import { createEventNotificationOncePerDay } from "./notificationService.js";
+import Event from "../events/events.model.js";
+import EventReminder from "../events/eventReminder.model.js";
+import { createEventNotificationOncePerDay } from "./notification.service.js";
 
 const DEFAULT_OFFSET_MIN = Number(process.env.NOTIFY_OFFSET_MINUTES ?? 60);
 

@@ -1,4 +1,4 @@
-import Event from "../models/Event.js";
+import Event from "./events.model.js";
 
 export const EventService = {
 

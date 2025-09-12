@@ -1,8 +1,8 @@
 import { Router } from "express";
 import {getStars,getMyStars,getStar,getStarByCatalog,createStar,updateStar,deleteStar
  
-} from "../controllers/starController.js";
-import { authRequired } from "../middleware/Auth.js";
+} from "./star.controller.js";
+import { authRequired } from "../../middleware/Auth.js";
 
 const router = Router();
 

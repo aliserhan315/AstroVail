@@ -1,4 +1,4 @@
-import User from "../models/User.js";
+import User from "./user.model.js";
 import { DateTime } from "luxon";
 
 const isValidIanaTz = (tz) => typeof tz === "string" && DateTime.now().setZone(tz).isValid;

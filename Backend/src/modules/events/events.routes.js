@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { authRequired } from "../middleware/Auth.js";
+import { authRequired } from "../../middleware/Auth.js";
 import {
   listEvents,
   getEvent,
   remindEvent,
-} from "../controllers/eventController.js"
+} from "./event.controller.js"
 
 
 const router = Router();

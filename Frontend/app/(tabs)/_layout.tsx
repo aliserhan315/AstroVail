@@ -1,8 +1,9 @@
-import React, { useMemo } from "react";
+import React, { JSX, useMemo } from "react";
 import { View, Text, Pressable, Platform } from "react-native";
 import { Slot, usePathname, useRouter } from "expo-router";
 import type { Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Home, Star, Calendar, Gift, User } from "lucide-react-native";
 
 const BG = "#0B0F1A";
 const ACTIVE_ICON = "#3B6BFF";
@@ -15,24 +16,54 @@ type NavItem = {
   label: string;
   href: Href;
   match: RegExp;
-  icon: string; 
+  Icon: (props: { color: string }) => JSX.Element;
 };
 
 const NAV: NavItem[] = [
-  { key: "home",    label: "Home",    href: "/(tabs)",         match: /^\/\(tabs\)\/?$/,       icon: "🏠" },
-  { key: "stars",   label: "Stars",   href: "/(tabs)/Stars",   match: /^\/\(tabs\)\/stars/,    icon: "🔭" },
-  { key: "events",  label: "Events",  href: "/(tabs)/events",  match: /^\/\(tabs\)\/events/,   icon: "📅" },
-  { key: "gift",    label: "Gift",    href: "/(tabs)/gift",    match: /^\/\(tabs\)\/gift/,     icon: "🎁" },
-  { key: "profile", label: "Profile", href: "/(tabs)/profile", match: /^\/\(tabs\)\/profile/,  icon: "👤" },
+  {
+    key: "home",
+    label: "Home",
+    href: "/(tabs)",
+    match: /^\/\(tabs\)\/?$/,
+    Icon: ({ color }) => <Home color={color} size={20} />,
+  },
+  {
+    key: "stars",
+    label: "Stars",
+    href: "/(tabs)/Stars",
+    match: /^\/\(tabs\)\/stars/,
+    Icon: ({ color }) => <Star color={color} size={20} />,
+  },
+  {
+    key: "events",
+    label: "Events",
+    href: "/(tabs)/events",
+    match: /^\/\(tabs\)\/events/,
+    Icon: ({ color }) => <Calendar color={color} size={20} />,
+  },
+  {
+    key: "gift",
+    label: "Gift",
+    href: "/(tabs)/gift",
+    match: /^\/\(tabs\)\/gift/,
+    Icon: ({ color }) => <Gift color={color} size={20} />,
+  },
+  {
+    key: "profile",
+    label: "Profile",
+    href: "/(tabs)/profile",
+    match: /^\/\(tabs\)\/profile/,
+    Icon: ({ color }) => <User color={color} size={20} />,
+  },
 ];
 
 export default function FixedTabsLayout() {
   const pathname = usePathname();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
   const hideBar = useMemo(() => {
-    return pathname.startsWith("/(tabs)/star/")
-        || pathname.startsWith("/(tabs)/(star)/");
+    return pathname.startsWith("/(tabs)/star/") || pathname.startsWith("/(tabs)/(star)/");
   }, [pathname]);
 
   const contentBottomPad = (BAR_HEIGHT ?? 72) + (insets.bottom || 0);
@@ -57,7 +88,11 @@ export default function FixedTabsLayout() {
             justifyContent: "space-around",
             height: BAR_HEIGHT,
             paddingTop: 8,
-            paddingBottom: Platform.select({ ios: 12 + insets.bottom, android: 12 + insets.bottom, default: 12 }),
+            paddingBottom: Platform.select({
+              ios: 12 + insets.bottom,
+              android: 12 + insets.bottom,
+              default: 12,
+            }),
           }}
         >
           {NAV.map((item) => {
@@ -75,14 +110,13 @@ export default function FixedTabsLayout() {
                   backgroundColor: active ? ACTIVE_BG : "transparent",
                 }}
               >
-                <Text style={{ fontSize: 20, marginBottom: 4 }}>
-                  {item.icon}
-                </Text>
+                <item.Icon color={active ? ACTIVE_ICON : INACTIVE_ICON} />
                 <Text
                   style={{
                     fontSize: 10,
                     color: active ? ACTIVE_ICON : INACTIVE_ICON,
                     fontWeight: active ? "700" : "500",
+                    marginTop: 4,
                   }}
                 >
                   {item.label}

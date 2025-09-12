@@ -2,9 +2,9 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { DateTime } from "luxon";
-import User from "../models/User.js";
-import Star from "../models/Star.js";
-import Session from "../models/Session.js";
+import User from "../user/user.model.js";
+import Star from "../star/star.model.js";
+import Session from "./session.model.js";
 
 const ACCESS_TTL = "15m";
 const REFRESH_DAYS = 30;

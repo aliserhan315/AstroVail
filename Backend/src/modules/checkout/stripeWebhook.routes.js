@@ -1,6 +1,6 @@
 import express from "express";
-import { CheckoutService } from "../services/CheckoutService.js";
-import { getStripe } from "../lib/stripe.js";
+import { CheckoutService } from "./checkout.service.js";
+import { getStripe } from "../../lib/stripe.js";
 
 
 const stripe = getStripe();

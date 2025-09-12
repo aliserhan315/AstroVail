@@ -1,7 +1,7 @@
 import { Router } from "express";
-import {getMe,updateMyProfile,updateMyDevice} from "../controllers/userController.js";
-import { authRequired } from "../middleware/Auth.js";
-import { getMyStars } from "../controllers/starController.js";
+import {getMe,updateMyProfile,updateMyDevice} from "./user.controller.js";
+import { authRequired } from "../../middleware/Auth.js";
+import { getMyStars } from "../star/star.controller.js";
 
 const router = Router();
 

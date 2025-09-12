@@ -1,5 +1,5 @@
-import { CartService } from "../services/CartService.js";
-import { success, error } from "../utils/response.js";
+import { CartService } from "./cart.service.js";
+import { success, error } from "../../utils/response.js";
 
 export async function getCart(req, res) {
   try { return success(res, await CartService.get(req.user.sub)); }

@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import Cart from "../models/Cart.js";
-import Star from "../models/Star.js";
-import Order from "../models/Order.js";
-import User from "../models/User.js";
-import { getStripe, isStripeEnabled } from "../lib/stripe.js";
+import Cart from "../cart/cart.model.js";
+import Star from "../star/star.model.js";
+import Order from "../checkout/order.model.js";
+import User from "../user/user.model.js";
+import { getStripe, isStripeEnabled } from "../..//lib/stripe.js";
 
 export const CheckoutService = {
   async create(userId) {

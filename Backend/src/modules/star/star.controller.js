@@ -1,5 +1,5 @@
-import { StarService } from "../services/starService.js";
-import { success, error } from "../utils/response.js";
+import { StarService } from "./star.service.js";
+import { success, error } from "../../utils/response.js";
 
 export async function getStars(req, res) {
   try {

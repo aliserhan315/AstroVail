@@ -4,8 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { connectDB } from './db.js';
-import api from './routes/index.js';
-import webhooksRouter from './routes/stripeWebhook.js';
+import api from './routes/index.routes.js';
+import webhooksRouter from './modules/checkout/stripeWebhook.routes.js';
 import { config } from './config.js';
 
 const app = express();

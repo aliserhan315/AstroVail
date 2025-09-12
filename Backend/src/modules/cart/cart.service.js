@@ -1,5 +1,5 @@
-import Cart from "../models/Cart.js";
-import Star from "../models/Star.js";
+import Cart from "./cart.model.js";
+import Star from "../star/star.model.js";
 
 const PRICE_CENTS = 3000;
 
@@ -12,13 +12,12 @@ export const CartService = {
     const star = await Star.findById(starId).lean();
     if (!star) throw Object.assign(new Error("Star not found"), { status: 404 });
     if (star.owner) throw Object.assign(new Error("Star already purchased"), { status: 409 });
-    // Ensure cart exists without using upsert to avoid duplicate-key race
     let cart = await Cart.findOne({ userId }).lean();
     if (!cart) {
       try {
         await Cart.create({ userId, items: [] });
       } catch (e) {
-        if (!(e && e.code === 11000)) throw e; // ignore if created concurrently
+        if (!(e && e.code === 11000)) throw e; 
       }
     }
     const updated = await Cart.findOneAndUpdate(

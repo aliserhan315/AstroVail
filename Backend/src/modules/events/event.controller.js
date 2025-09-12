@@ -1,6 +1,6 @@
-import { EventService } from "../services/eventService.js";
-import { ReminderService } from "../services/reminderService.js";
-import { success, error } from "../utils/response.js";
+import { EventService } from "./event.service.js";
+import { ReminderService } from "../notification/reminder.service.js";
+import { success, error } from "../../utils/response.js";
 
 export async function listEvents(req, res) {
   try {

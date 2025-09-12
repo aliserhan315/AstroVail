@@ -1,5 +1,5 @@
-import { UserService } from "../services/userService.js";
-import { success, error } from "../utils/response.js";
+import { UserService } from "./user.service.js";
+import { success, error } from "../../utils/response.js";
 
 export async function getMe(req, res) {
   try { return success(res, await UserService.me(req.user.sub)); }

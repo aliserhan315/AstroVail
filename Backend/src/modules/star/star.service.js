@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import Star from "../models/Star.js";
-import User from "../models/User.js";
+import Star from "./star.model.js";
+import User from "../user/user.model.js";
 
 const ALLOWED_STYLES = ["classic", "modern", "cosmic"];
 
@@ -33,10 +33,8 @@ export const StarService = {
     if (magnitudeMax !== undefined) baseFilter.magnitude = { $lte: Number(magnitudeMax) };
     if (toBool(nakedEye) !== undefined) baseFilter.nakedEye = !!toBool(nakedEye);
     if (toBool(binocular) !== undefined) baseFilter.binocular = !!toBool(binocular);
-
-    // No search term: return random picks (respect filters), default 25
     if (!q || !q.trim()) {
-      const size = Math.min(100, toInt(limit, 25)); // was 50
+      const size = Math.min(100, toInt(limit, 25));
       const randomFilter = { ...baseFilter };
 
       const [items, total] = await Promise.all([

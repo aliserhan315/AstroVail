@@ -1,5 +1,5 @@
-import { NotificationService } from "../services/notificationService.js";
-import { success, error } from "../utils/response.js";
+import { NotificationService } from "./notification.service.js";
+import { success, error } from "../../utils/response.js";
 
 export async function listNotifications(req, res) {
   try {

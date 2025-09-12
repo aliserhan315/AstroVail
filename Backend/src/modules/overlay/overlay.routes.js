@@ -1,10 +1,10 @@
 import express from "express";
 import multer from "multer";
 import sharp from "sharp";
-import Star from "../models/Star.js";
-import { solveWithAstrometry } from "../services/plateService.js";
-import { wcsProjectXY } from "../utils/astro.js";
-import { edgePointer, distanceInFOVs, humanizeHint } from "../utils/overlay.js";
+import Star from "../star/star.model.js";
+import { solveWithAstrometry } from "./plate.service.js";
+import { wcsProjectXY } from "../../utils/astro.js";
+import { edgePointer, distanceInFOVs, humanizeHint } from "../../utils/overlay.js";
 
 const router = express.Router();
 const upload = multer({ limits: { fileSize: 8 * 1024 * 1024 } });
