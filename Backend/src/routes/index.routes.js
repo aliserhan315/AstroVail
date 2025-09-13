@@ -7,6 +7,7 @@ import cart from '../modules/cart/cart.routes.js';
 import user from '../modules/user/user.routes.js';
 import stars from '../modules/star/stars.routes.js';
 import overlayRoute from '../modules/overlay/overlay.routes.js';
+import ownership from '../modules/ownership/ownership.routes.js';
 
 
 const router = Router();
@@ -19,4 +20,5 @@ router.use('/checkout', checkout);
 router.use('/cart', cart);
 router.use('/me',user); 
 router.use('/overlay', overlayRoute);
+router.use('/ownership', ownership);
 export default router;

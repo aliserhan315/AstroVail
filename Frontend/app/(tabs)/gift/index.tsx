@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, StatusBar, Pressable } from "react-native";
+import { View, Text, ScrollView, StatusBar, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import Background from "@/components/Background";
@@ -8,12 +8,12 @@ import LabeledInput from "@/components/ui/LabeledInput";
 import Button from "@/components/ui/Button";
 import { ButtonVariant } from "@/types/ui";
 import { useAppDispatch, useAppSelector } from "@/state/hooks";
-import { updateItem, removeItem } from "@/state/slices/cartSlice";
+import { updateItem, removeItem, clear } from "@/state/slices/cartSlice";
 import { CertificateStyle } from "@/types/cart";
 import GiftStarPill from "@/components/gift/GiftStarPill";
 import styles from "./gift.styles";
 
-import { CartAPI } from "@/lib/endpoint";
+import { CartAPI, CheckoutAPI } from "@/lib/endpoint";
 
 export default function GiftScreen() {
   const insets = useSafeAreaInsets();
@@ -24,14 +24,13 @@ export default function GiftScreen() {
   const [mode, setMode] = useState<"gift" | "self">("gift");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  
 
   const pills = items.map((it) => ({
     id: it.starId,
     name: it.starName,
     mag: it.price != null ? String(it.price) : "0.03",
     ra: "18h36m",
-    dec: "+38�47'",
+    dec: "+38°47′",
     constellation: "Lyra",
   }));
 
@@ -42,28 +41,34 @@ export default function GiftScreen() {
   };
 
   const onConfirm = async () => {
-    const patch =
-      mode === "gift"
-        ? { recipientEmail: email.trim() || undefined }
-        : { recipientEmail: undefined };
-    // Add + update sequentially to avoid upsert race creating duplicate carts
-    for (const it of items) {
-      await CartAPI.add(it.starId, it.qty ?? 1);
-      await CartAPI.update(it.starId, patch);
+    try {
+      const patch =
+        mode === "gift"
+          ? { recipientEmail: email.trim() || undefined }
+          : { recipientEmail: undefined };
+
+      for (const it of items) {
+        await CartAPI.add(it.starId, it.qty ?? 1);
+        await CartAPI.update(it.starId, patch);
+        dispatch(updateItem({ starId: it.starId, patch: { ...patch, message: mode === "gift" ? message : undefined } }));
+      }
+      const order = await CheckoutAPI.create();
+
+      if (order?.status === "paid") {
+        dispatch(clear());
+        router.replace("/(tabs)"); 
+      } else if (order?.status === "failed_sold_out") {
+        Alert.alert("Sold out", "One or more selected stars were purchased by someone else. Please review your cart.");
+      } else {
+        Alert.alert("Checkout", "Unexpected state. Please try again.");
+      }
+    } catch (e: any) {
+      Alert.alert("Checkout failed", e?.response?.data?.message ?? e?.message ?? "Please try again.");
     }
-    for (const it of items) {
-      dispatch(
-        updateItem({
-          starId: it.starId,
-          patch: { ...patch, message: mode === "gift" ? message : undefined },
-        })
-      );
-    }
-    router.push("/checkout");
   };
 
   const generateWithAI = () => {
-    setMessage("Write your custom message here - a short, heartfelt note that travels with your star.");
+    setMessage("Write your custom message here — a short, heartfelt note that travels with your star.");
   };
 
   return (
@@ -106,9 +111,7 @@ export default function GiftScreen() {
               star={s}
               onRemove={async () => {
                 dispatch(removeItem(s.id));
-                try {
-                  await CartAPI.remove(s.id);
-                } catch {}
+                try { await CartAPI.remove(s.id); } catch {}
               }}
             />
           ))}
@@ -126,7 +129,7 @@ export default function GiftScreen() {
               <LabeledInput
                 value={message}
                 onChangeText={setMessage}
-                placeholder="Write your custom message here"
+              placeholder="Write your custom message here"
                 multiline
                 rightButtonText="Generate with AI"
                 onRightButtonPress={generateWithAI}
@@ -156,4 +159,3 @@ export default function GiftScreen() {
     </View>
   );
 }
-
