@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  astrochain:
+    build: ./astrochain-simple
+    container_name: astrochain
+    ports:
+      - "8545:8545"
+    environment:
+      - NODE_ENV=development
+
+  backend:
+    build: ./Backend
+    container_name: backend
+    env_file:
+      - ./Backend/.env
+    environment:
+      - CHAIN_RPC_URL=http://astrochain:8545
+    depends_on:
+      - astrochain
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build: ./Frontend
+    container_name: frontend
+    ports:
+      - "8080:80"
+
