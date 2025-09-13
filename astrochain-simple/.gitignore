@@ -1,0 +1,15 @@
+# dependencies
+node_modules/
+
+# hardhat artifacts
+artifacts/
+cache/
+coverage/
+
+# env and secrets
+.env
+
+# OS / editor
+.DS_Store
+*.log
+
