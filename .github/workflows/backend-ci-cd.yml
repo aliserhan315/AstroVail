@@ -4,11 +4,13 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'backend/**'
       - 'Backend/**'
       - '.github/workflows/**'
   push:
     branches: [main]
     paths:
+      - 'backend/**'
       - 'Backend/**'
       - '.github/workflows/**'
 
@@ -21,21 +23,32 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: Backend
+        # 👇 make sure this matches your actual folder name on disk
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: Backend/package-lock.json
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install deps
         run: npm ci --include=dev
 
-      - name: Run tests␍␊
-        run: npx --yes jest --runInBand
+      # (Optional) quick visibility for Linux path casing issues
+      - name: Debug checkout module paths
+        run: |
+          pwd
+          ls -la
+          ls -la src/modules/checkout || true
+          echo "Import lines in controller (if file exists):"
+          grep -n "checkout.service" src/modules/checkout/checkout.controller.js || true
+
+      - name: Run tests
+        run: npm run test
         env:
           NODE_OPTIONS: --experimental-vm-modules
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}

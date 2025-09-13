@@ -36,7 +36,6 @@ export const CheckoutService = {
         { session }
       );
 
-      // 4) Resolve ownership for each cart item
       const ops = [];
       for (const item of cart.items) {
         const email = item.recipientEmail ? String(item.recipientEmail).trim().toLowerCase() : null;
@@ -114,7 +113,6 @@ export const CheckoutService = {
     }
   },
 
-  // Optional 2-step finalize flow (not required if you use create() directly)
   async finalizePaid({ orderId }) {
     const session = await mongoose.startSession();
     try {
@@ -175,7 +173,6 @@ export const CheckoutService = {
 
       await session.commitTransaction();
 
-      // Fire-and-forget mint
       try {
         const orderDoc = await Order.findById(orderId).lean();
         const buyer = await User.findById(orderDoc.userId).lean();
