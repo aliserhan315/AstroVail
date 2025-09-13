@@ -3,7 +3,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-# Build static web bundle
 RUN npx expo export --platform web --output-dir dist
 
 FROM nginx:alpine
