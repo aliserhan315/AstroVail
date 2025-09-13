@@ -8,7 +8,6 @@ module.exports = {
   networks: {
     hardhat: {},
     localhost: { url: "http://127.0.0.1:8545", chainId: 31337 },
-    localhost: { url: "http://127.0.0.1:8546", chainId: 31337 },
     baseSepolia: {
       url: RPC_BASE_SEPOLIA,
       accounts: DEPLOYER_PK ? [DEPLOYER_PK] : [],

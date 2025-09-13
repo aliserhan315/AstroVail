@@ -1,0 +1,7 @@
+[
+  "function owner() view returns (address)",
+  "function currentTokenId() view returns (uint256)",
+  "function mint(address to) returns (uint256)",
+  "function ownerOf(uint256 tokenId) view returns (address)"
+]
+
