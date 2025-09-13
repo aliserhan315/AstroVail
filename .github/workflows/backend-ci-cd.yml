@@ -5,13 +5,11 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
-      - 'Backend/**'
       - '.github/workflows/**'
   push:
     branches: [main]
     paths:
       - 'backend/**'
-      - 'Backend/**'
       - '.github/workflows/**'
 
 concurrency:
@@ -23,8 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        # 👇 make sure this matches your actual folder name on disk
         working-directory: backend
+
     steps:
       - uses: actions/checkout@v4
 
@@ -33,12 +31,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: |
+            **/package-lock.json
 
       - name: Install deps
         run: npm ci --include=dev
 
-      # (Optional) quick visibility for Linux path casing issues
       - name: Debug checkout module paths
         run: |
           pwd
