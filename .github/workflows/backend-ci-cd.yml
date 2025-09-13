@@ -26,12 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # optional: verify the directory actually exists on Linux (case-sensitive)
       - name: Debug repo structure
         run: |
           pwd
           ls -la
-          ls -la Backend || true
+          ls -la src || true
+          ls -la src/modules/checkout || true
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -43,11 +43,18 @@ jobs:
       - name: Install deps
         run: npm ci --include=dev
 
+      - name: Check jest presence
+        run: |
+          npm ls jest || true
+          npx --yes jest --version
+
       - name: Run tests
-        run: npm run test
+        run: npx --yes jest --runInBand
         env:
           NODE_OPTIONS: --experimental-vm-modules
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_TEST }}
           MONGODB_URI: ${{ secrets.MONGODB_URI_TEST }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+       
