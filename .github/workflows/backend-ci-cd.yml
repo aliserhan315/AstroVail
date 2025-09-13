@@ -1,4 +1,4 @@
-name: CI (Backend)
+name: "CI (Backend)"
 
 on:
   pull_request:
@@ -22,32 +22,22 @@ jobs:
     defaults:
       run:
         working-directory: Backend
-    env:
-      NODE_OPTIONS: --experimental-vm-modules
-      CI: true
-      # Pin a known-good MongoDB for mongodb-memory-server to reduce flakiness
-      MONGOMS_VERSION: '7.0.14'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
           cache-dependency-path: Backend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install deps
         run: npm ci --include=dev
-
-      - name: Sanity check files
-        run: |
-          ls -la src/modules/checkout
-          test -f src/modules/checkout/checkout.service.js
-
-      - name: Clear Jest cache
-        run: npx --yes jest --clearCache
 
       - name: Run tests
         run: npm run test
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_TEST }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI_TEST }}
