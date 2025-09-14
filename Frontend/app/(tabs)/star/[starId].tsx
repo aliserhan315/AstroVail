@@ -230,7 +230,7 @@ export default function StarDetailsScreen() {
           />
         ) : (
           <SectionCard style={{ gap: 12, marginTop: 8 }}>
-            <PrimaryButton text="Add To Gift" onPress={handleAddToGift} />
+            <PrimaryButton text="Add To cart" onPress={handleAddToGift} />
             <PrimaryButton text="Send As Gift" onPress={handleAddToGift} />
             <PrimaryButton
               text="Check Similar Stars"
