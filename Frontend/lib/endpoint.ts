@@ -60,15 +60,17 @@ export const CartAPI = {
   add(starId: string, qty = 1) {
     return api.post("/cart/items", { starId, qty }).then((r) => r.data.data);
   },
-  update(starId: string, patch: { recipientEmail?: string }) {
-    return api
-      .patch(`/cart/items/${starId}`, patch)
-      .then((r) => r.data.data);
+  update(
+    starId: string,
+    patch: { recipientEmail?: string; certificateStyle?: "classic" | "cosmic" }
+  ) {
+    return api.patch(`/cart/items/${starId}`, patch).then((r) => r.data.data);
   },
   remove(starId: string) {
     return api.delete(`/cart/items/${starId}`).then((r) => r.data.data);
   },
 };
+
 
 export const EventsAPI = {
   list(params?: {
