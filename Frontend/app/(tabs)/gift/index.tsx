@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, StatusBar, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+
 import Background from "@/components/Background";
 import Segmented from "@/components/ui/Segmented";
 import LabeledInput from "@/components/ui/LabeledInput";
 import Button from "@/components/ui/Button";
 import { ButtonVariant } from "@/types/ui";
+
 import { useAppDispatch, useAppSelector } from "@/state/hooks";
 import { updateItem, removeItem, clear } from "@/state/slices/cartSlice";
 import { CertificateStyle } from "@/types/cart";
@@ -24,6 +26,7 @@ export default function GiftScreen() {
   const [mode, setMode] = useState<"gift" | "self">("gift");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const pills = items.map((it) => ({
     id: it.starId,
@@ -41,8 +44,19 @@ export default function GiftScreen() {
   };
 
   const onConfirm = async () => {
+    if (items.length === 0) {
+      Alert.alert("Your cart is empty", "Pick a star first.");
+      return;
+    }
+
+    if (mode === "gift" && !email.trim()) {
+      Alert.alert("Recipient email required", "Add who should receive the certificate.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      const patch =
+      const basePatch =
         mode === "gift"
           ? { recipientEmail: email.trim() || undefined }
           : { recipientEmail: undefined };
@@ -50,12 +64,18 @@ export default function GiftScreen() {
       const failed: { id: string; reason: string }[] = [];
       for (const it of items) {
         try {
+          const styleWire =
+            (it.certificateStyle ?? CertificateStyle.Classic) === CertificateStyle.Cosmic
+              ? ("cosmic" as const)
+              : ("classic" as const);
+
           await CartAPI.add(it.starId, it.qty ?? 1);
-          await CartAPI.update(it.starId, patch);
+          await CartAPI.update(it.starId, { ...basePatch, certificateStyle: styleWire });
+
           dispatch(
             updateItem({
               starId: it.starId,
-              patch: { ...patch, message: mode === "gift" ? message : undefined },
+              patch: { ...basePatch, message: mode === "gift" ? message : undefined },
             })
           );
         } catch (e: any) {
@@ -67,45 +87,57 @@ export default function GiftScreen() {
       if (failed.length > 0) {
         for (const f of failed) {
           dispatch(removeItem(f.id));
-          try { await CartAPI.remove(f.id); } catch {}
+          try {
+            await CartAPI.remove(f.id);
+          } catch {}
         }
         Alert.alert(
-          "Some stars are unavailable",
-          `Removed ${failed.length} purchased star(s) from your cart. Please review and try again.`
+          "Some stars became unavailable",
+          `Removed ${failed.length} item(s) from your cart. Review and try again.`
         );
+        setSubmitting(false);
         return;
       }
+
       const order = await CheckoutAPI.create();
 
       if (order?.status === "paid") {
         dispatch(clear());
-        router.replace("/(tabs)"); 
+        Alert.alert("Success", "Your order is complete. Certificates are being generated.");
+        router.replace("/(tabs)");
       } else if (order?.status === "failed_sold_out") {
         const soldOut: string[] = [];
         for (const it of items) {
           try {
             const star = await StarsAPI.get(it.starId);
             const doc: any = star?.data ?? star;
-            if (doc?.owner) {
-              soldOut.push(it.starId);
-            }
+            if (doc?.owner) soldOut.push(it.starId);
           } catch {}
         }
         if (soldOut.length > 0) {
           for (const id of soldOut) {
             dispatch(removeItem(id));
-            try { await CartAPI.remove(id); } catch {}
+            try {
+              await CartAPI.remove(id);
+            } catch {}
           }
+          Alert.alert("Sold out", "Some stars were just purchased by someone else.");
         }
-       
+      } else {
+        router.replace("/(tabs)");
       }
-    } catch (e: any) {
+    } catch (e) {
       console.log(e);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const generateWithAI = () => {
-    setMessage("Write your custom message here — a short, heartfelt note that travels with your star.");
+    setMessage(
+      "Write your custom message here — a short, heartfelt note that travels with your star."
+    );
   };
 
   return (
@@ -148,7 +180,9 @@ export default function GiftScreen() {
               star={s}
               onRemove={async () => {
                 dispatch(removeItem(s.id));
-                try { await CartAPI.remove(s.id); } catch {}
+                try {
+                  await CartAPI.remove(s.id);
+                } catch {}
               }}
             />
           ))}
@@ -166,7 +200,7 @@ export default function GiftScreen() {
               <LabeledInput
                 value={message}
                 onChangeText={setMessage}
-              placeholder="Write your custom message here"
+                placeholder="Write your custom message here"
                 multiline
                 rightButtonText="Generate with AI"
                 onRightButtonPress={generateWithAI}
@@ -189,6 +223,7 @@ export default function GiftScreen() {
             title={mode === "gift" ? "Confirm Gift" : "Buy Stars"}
             variant={ButtonVariant.Primary}
             onPress={onConfirm}
+            disabled={submitting}
             style={styles.cta}
           />
         </View>
