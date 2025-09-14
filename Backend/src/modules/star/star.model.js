@@ -6,6 +6,7 @@ const StarSchema = new mongoose.Schema(
     name:        { type: String, default: null },
     baseName:    { type: String, required: true },  
     displayName: { type: String },                  
+    story:       { type: String, default: null },
     ra: Number,
     dec: Number,
     magnitude: Number,

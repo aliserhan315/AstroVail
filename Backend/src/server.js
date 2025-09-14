@@ -36,7 +36,7 @@ app.get('/api/openapi.json', (_req, res) => res.json(swaggerSpec));
 try {
   await connectDB();
   app.listen(config.port ?? 3000, () => {
-    console.log(`http://localhost:3000`);
+    console.log(`http://localhost:${config.port ?? 3000}`);
   });
 } catch (err) {
   console.error('Failed to start server:', err);

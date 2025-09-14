@@ -217,6 +217,9 @@ export const StarService = {
     if (typeof payload.displayName === "string") {
       set.displayName = payload.displayName.trim().slice(0, 120);
     }
+    if (typeof payload.story === "string") {
+      set.story = payload.story.trim().slice(0, 5000);
+    }
     if (payload.certificateStyle && ALLOWED_STYLES.includes(payload.certificateStyle)) {
       set.certificateStyle = payload.certificateStyle;
     }
