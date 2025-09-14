@@ -37,11 +37,13 @@ function sanitizeLocation(loc) {
   };
 }
 async function applyDeviceContext(user, { tz, location } = {}) {
-  let changed = false;
-  if (isValidIanaTz(tz) && user.tz !== tz) { user.tz = tz; changed = true; }
+  const patch = {};
+  if (isValidIanaTz(tz)) patch.tz = tz;
   const sl = sanitizeLocation(location);
-  if (sl) { user.location = sl; changed = true; }
-  if (changed) await user.save();
+  if (sl) patch.location = sl;
+  if (Object.keys(patch).length) {
+    await User.updateOne({ _id: user._id }, { $set: patch });
+  }
 }
 
 async function claimPendingStars(user) {

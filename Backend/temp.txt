@@ -1,12 +1,8 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { jest } from "@jest/globals";
 
 dotenv.config();
-// Use in-memory MongoDB by default for local Jest runs
-if (!process.env.USE_MEM_MONGO) {
-  process.env.USE_MEM_MONGO = "true";
-}
 
 jest.setTimeout(30000);
 

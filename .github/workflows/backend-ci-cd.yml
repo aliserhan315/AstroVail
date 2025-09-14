@@ -24,9 +24,12 @@ jobs:
         working-directory: Backend
     env:
       NODE_OPTIONS: --experimental-vm-modules
+      USE_MEM_MONGO: 'false'
+      MONGODB_URI: ${{ secrets.MONGODB_URI_TEST }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_TEST }}
       CI: true
-      # Pin a known-good MongoDB for mongodb-memory-server to reduce flakiness
-      MONGOMS_VERSION: '7.0.14'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,4 +53,4 @@ jobs:
         run: npx --yes jest --clearCache
 
       - name: Run tests
-        run: npm run test
+        run: npx --yes jest --runInBand
