@@ -1,5 +1,5 @@
 import express from "express";
-import { CheckoutService } from "./checkout.service.js";
+import checkoutService from "./checkout.service.js";
 import { getStripe } from "../../lib/stripe.js";
 
 
@@ -27,12 +27,12 @@ router.post(
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object;
-          await CheckoutService.finalizeStripeSession({ session });
+          await checkoutService.finalizeStripeSession({ session });
           break;
         }
         case "checkout.session.expired": {
           const session = event.data.object;
-          await CheckoutService.markOrderExpired?.(session.id);
+          await checkoutService.markOrderExpired?.(session.id);
           break;
         }
         default:
