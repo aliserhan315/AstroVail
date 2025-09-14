@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {ActivityIndicator,ScrollView,StyleSheet,Text,  View,  Pressable,} from "react-native";
+import {ActivityIndicator,ScrollView,StyleSheet,Text,  View,  Pressable, Modal, Alert} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 
@@ -10,6 +10,7 @@ import StarInfoCard from "@/components/Star/starInfoCard/StarInfoCard";
 import StoryCard from "@/components/Star/StoryCard/StoryCard";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import SectionCard from "@/components/ui/SectionCard";
+import LabeledInput from "@/components/ui/LabeledInput";
 
 import { useAppDispatch } from "@/state/hooks";
 import { addOrUpdateItem } from "@/state/slices/cartSlice";
@@ -20,6 +21,7 @@ type StarDoc = {
   _id: string;
   baseName: string;
   displayName?: string | null;
+  story?: string | null;
   constellation?: string | null;
   magnitude?: number;
   ra?: number;
@@ -56,6 +58,10 @@ export default function StarDetailsScreen() {
   const [star, setStar] = useState<StarDoc | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newStory, setNewStory] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -105,7 +111,7 @@ export default function StarDetailsScreen() {
     if (!star) return "—";
     const renamed = !!(star.displayName && star.displayName !== star.baseName);
     return renamed
-      ? `${star.baseName}/${star.displayName}`
+      ? `${star.displayName}`
       : star.displayName ?? star.baseName;
   }, [star]);
 
@@ -151,7 +157,15 @@ export default function StarDetailsScreen() {
   }
 
   const handleAddToGift = async () => {
-    // 1) Local cart
+    if (!star) return;
+    try {
+      await CartAPI.add(star._id, 1);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || "Star already purchased";
+      Alert.alert("Unavailable", msg);
+      return;
+    }
+
     dispatch(
       addOrUpdateItem({
         starId: star._id,
@@ -161,12 +175,6 @@ export default function StarDetailsScreen() {
         price: 0.03,
       })
     );
-    try {
-      await CartAPI.add(star._id, 1);
-    } catch (e) {
-      console.warn("CartAPI.add failed", e);
-    }
-
     router.push("/(tabs)/gift");
   };
 
@@ -201,13 +209,23 @@ export default function StarDetailsScreen() {
             title={`🌟 The Story of ${star.displayName ?? star.baseName}${
               star.displayName ? ` (formerly ${star.baseName})` : ""
             }`}
-            body={story}
+            body={star?.story?.trim() ? (star.story as string) : story}
             footer={
-              <PrimaryButton
-                text="Check Similar Stars"
-                variant="secondary"
-                onPress={() => router.push("/(tabs)/Stars")}
-              />
+              <View style={{ gap: 12 }}>
+                <PrimaryButton
+                  text="Edit Star"
+                  onPress={() => {
+                    setNewName(star.displayName ?? "");
+                    setNewStory(star.story ?? "");
+                    setEditOpen(true);
+                  }}
+                />
+                <PrimaryButton
+                  text="Check Similar Stars"
+                  variant="secondary"
+                  onPress={() => router.push("/(tabs)/Stars")}
+                />
+              </View>
             }
           />
         ) : (
@@ -222,6 +240,56 @@ export default function StarDetailsScreen() {
           </SectionCard>
         )}
       </ScrollView>
+
+      <Modal visible={editOpen} animationType="slide" transparent>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: 20 }}>
+          <SectionCard style={{ padding: 16, gap: 12 }}>
+            <Text style={{ color: Colors.text, fontSize: 20, fontWeight: "700" }}>Edit Your Star</Text>
+            <LabeledInput
+              label="Name"
+              value={newName}
+              onChangeText={setNewName}
+              placeholder="New display name"
+              autoCapitalize="words"
+            />
+            <LabeledInput
+              label="Story"
+              value={newStory}
+              onChangeText={setNewStory}
+              placeholder="Write your star’s story"
+              multiline
+              style={{ marginTop: 8 }}
+            />
+            <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
+              <PrimaryButton
+                text={saving ? "Saving..." : "Save"}
+                onPress={async () => {
+                  if (!star) return;
+                  try {
+                    setSaving(true);
+                    const patch: any = {};
+                    patch.displayName = newName.trim();
+                    patch.story = newStory; 
+                    const updated = await StarsAPI.update(star._id, patch);
+                    const doc: StarDoc = (updated?.data ?? updated) as any;
+                    setStar(doc);
+                    setEditOpen(false);
+                  } catch (e: any) {
+                    Alert.alert("Update failed", e?.response?.data?.message ?? e?.message ?? "Please try again");
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+              />
+              <PrimaryButton
+                text="Cancel"
+                variant="secondary"
+                onPress={() => setEditOpen(false)}
+              />
+            </View>
+          </SectionCard>
+        </View>
+      </Modal>
     </View>
   );
 }
