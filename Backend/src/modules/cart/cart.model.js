@@ -3,8 +3,13 @@ const { Schema } = mongoose;
 
 const CartItemSchema = new Schema({
   starId:     { type: Schema.Types.ObjectId, ref: "Star", required: true },
-  priceCents: { type: Number, required: true },
+  priceCents: { type: Number, required: true, default: 3000 },
   recipientEmail: { type: String, default: null },
+  certificateStyle: {
+    type: String,
+    enum: ["classic", "cosmic"],
+    default: "classic",
+  },
 }, { _id: false });
 
 const CartSchema = new Schema({
