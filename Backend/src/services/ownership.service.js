@@ -115,7 +115,7 @@ export const OwnershipBlockchain = {
     const rcpt = await tx.wait();
     const tokenId = await contract.currentTokenId();
     recordMint({ tokenId, email: user.email, wallet: user.address, starId, orderId, txHash: rcpt.hash || rcpt.transactionHash });
-    // Persist to DB as a non-blocking operation to keep current flow intact
+   
     saveOwnershipRecordDb({ tokenId, email: user.email, wallet: user.address, starId, orderId, txHash: rcpt.hash || rcpt.transactionHash })
       .catch(() => {});
     return { tokenId: String(tokenId), txHash: rcpt.hash || rcpt.transactionHash, to: user.address };
