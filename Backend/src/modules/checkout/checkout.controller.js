@@ -1,4 +1,4 @@
-import { CheckoutService } from "./checkout.service.1";
+import { CheckoutService } from "./checkout.service.1.js";
 import { success, error } from "../../utils/response.js";
 
 export async function createCheckout(req, res) {
