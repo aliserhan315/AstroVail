@@ -4,7 +4,7 @@ import Star from "../star/star.model.js";
 import Order from "./order.model.js";
 import User from "../user/user.model.js";
 
-export const CheckoutService = {
+export default checkoutService = {
   async create(userId) {
     const session = await mongoose.startSession();
     try {
