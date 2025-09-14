@@ -1,7 +1,7 @@
 
 import 'dotenv/config.js';
 import mongoose from 'mongoose';
-import Star from '../src/models/Star.js';
+import Star from '../src/modules/star/star.model.js';
 import { XMLParser } from 'fast-xml-parser';
 import pLimit from 'p-limit';
 

@@ -1,4 +1,4 @@
-name: "CI (Backend)"
+name: CI (Backend)
 
 on:
   pull_request:
@@ -22,22 +22,29 @@ jobs:
     defaults:
       run:
         working-directory: Backend
+    env:
+      NODE_OPTIONS: --experimental-vm-modules
+      USE_MEM_MONGO: 'true'
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_TEST }}
+      CI: true
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: Backend/package-lock.json
 
-      - name: Install deps
+      - name: Install dependencies
         run: npm ci --include=dev
+
+      - name: Clear Jest cache
+        run: npx --yes jest --clearCache
 
       - name: Run tests
         run: npx --yes jest --runInBand
-        env:
-          NODE_OPTIONS: --experimental-vm-modules
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_TEST }}
-          MONGODB_URI: ${{ secrets.MONGODB_URI_TEST }}

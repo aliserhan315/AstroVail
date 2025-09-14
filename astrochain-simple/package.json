@@ -1,0 +1,29 @@
+{
+  "name": "astrochain-simple",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:base": "hardhat run scripts/deploy.js --network baseSepolia",
+    "mint:base": "hardhat run scripts/mint.js --network baseSepolia",
+    "owner:base": "hardhat run scripts/ownerOf.js --network baseSepolia",
+    "deploy:local": "hardhat run scripts/deploy.js",
+    "mint:local": "hardhat run scripts/mint.js",
+    "owner:local": "hardhat run scripts/ownerOf.js",
+    "deploy:localhost": "hardhat run scripts/deploy.js --network localhost",
+    "mint:localhost": "hardhat run scripts/mint.js --network localhost",
+    "owner:localhost": "hardhat run scripts/ownerOf.js --network localhost",
+    "contract-owner:local": "hardhat run scripts/contractOwner.js",
+    "contract-owner:localhost": "hardhat run scripts/contractOwner.js --network localhost",
+    "transfer-owner:localhost": "hardhat run scripts/transferOwner.js --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.6.1",
+    "hardhat": "^2.26.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0"
+  }
+}

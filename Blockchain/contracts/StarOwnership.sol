@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import { ERC721URIStorage } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
 /// One star == one ERC-721. tokenId = uint256(keccak256(bytes(catalogId))).
 /// Transfers disabled unless caller has TRANSFER_ROLE (soulbound-like).
@@ -19,12 +19,12 @@ contract StarOwnership is ERC721URIStorage, AccessControl {
         external
         onlyRole(MINTER_ROLE)
     {
-        require(!_exists(tokenId), "Star claimed");
+        // OZ v5: use _ownerOf(tokenId) to detect existence
+        require(_ownerOf(tokenId) == address(0), "Star claimed");
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
     }
 
-    // Block transfers unless caller has TRANSFER_ROLE (mint/burn allowed).
     function _update(address to, uint256 tokenId, address auth)
         internal
         override
@@ -36,5 +36,13 @@ contract StarOwnership is ERC721URIStorage, AccessControl {
         }
         return super._update(to, tokenId, auth);
     }
-}
 
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, AccessControl)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+}

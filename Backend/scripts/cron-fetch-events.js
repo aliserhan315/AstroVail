@@ -1,7 +1,7 @@
 import "dotenv/config.js";
 import mongoose from "mongoose";
 import cron from "node-cron";
-import { EventService } from "../src/services/eventService.js";
+import { EventService } from "../src/modules/events/event.service.js";
 import { fetchDonkiSolarFlares } from "../src/events/sources/nasa_donki.js";
 import { fetchCuratedCalendar } from "../src/events/sources/curated_calendar.js";
 

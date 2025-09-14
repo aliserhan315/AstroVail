@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse';
 import mongoose from 'mongoose';
-import Star from '../src/models/Star.js';
+import Star from '../src/modules/star/star.model.js';
 
 const MONGO_URL = (process.env.MONGODB_URI || '').trim();
 let GAIA_CSV = (process.env.GAIA_CSV || '').trim();

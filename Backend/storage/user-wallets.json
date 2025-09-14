@@ -1,0 +1,17 @@
+{
+  "aliserhan@example.com": {
+    "email": "aliserhan@example.com",
+    "address": "0x18F1B9598d2A30F67d59D7D651925a2a04394503",
+    "privateKey": "0xe178415e6ad9b9d5662ab67d794c6adcfa0bf69af619d58dc882bc7c6d771499"
+  },
+  "aliserhan315@gmail.com": {
+    "email": "aliserhan315@gmail.com",
+    "address": "0x3F878431688b913D01fbf9F564ea6e79fB985887",
+    "privateKey": "0x71b402d7b788463723d25453529724063eb42c6241dc6adbc578dff311dc19a6"
+  },
+  "ali@example.com": {
+    "email": "ali@example.com",
+    "address": "0x2d874085152d7eF7319a09Cf67ab0f5F32Ebe907",
+    "privateKey": "0x9cf5ba0721e77c875e9adad09b3186e90a9d82fc00ef447ed7c2775eb6eebc6b"
+  }
+}
