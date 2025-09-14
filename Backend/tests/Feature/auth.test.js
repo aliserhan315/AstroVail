@@ -1,4 +1,4 @@
-import { api, registerUser } from "../helpers.js";
+import { apiPost, registerUser } from "../helpers.js";
 import { faker } from "@faker-js/faker";
 
 describe("Auth", () => {
@@ -7,7 +7,7 @@ describe("Auth", () => {
     const password = `Passw0rd!${faker.string.alphanumeric(4)}`;
     const displayName = faker.person.firstName();
 
-    const res = await api().post("/auth/register").send({
+    const res = await apiPost("/auth/register").send({
       email,
       password,
       displayName,
@@ -23,28 +23,28 @@ describe("Auth", () => {
     const email = faker.internet.email({ provider: "example.com" });
     const password = `P@ss${faker.string.alphanumeric(6)}`;
 
-    await api().post("/auth/register").send({ email, password }).expect(201);
-    await api().post("/auth/register").send({ email, password }).expect(400);
+    await apiPost("/auth/register").send({ email, password }).expect(201);
+    await apiPost("/auth/register").send({ email, password }).expect(400);
   });
 
   test("login works", async () => {
     const email = faker.internet.email({ provider: "example.com" });
     const password = `Abc123!${faker.string.alphanumeric(5)}`;
 
-    await api().post("/auth/register").send({ email, password }).expect(201);
-    const res = await api().post("/auth/login").send({ email, password }).expect(200);
+    await apiPost("/auth/register").send({ email, password }).expect(201);
+    const res = await apiPost("/auth/login").send({ email, password }).expect(200);
     expect(res.body.data.accessToken).toBeTruthy();
   });
 
   test("refresh rotates tokens", async () => {
     const { refreshToken } = await registerUser(); 
-    const res = await api().post("/auth/refresh").send({ refreshToken }).expect(200);
+    const res = await apiPost("/auth/refresh").send({ refreshToken }).expect(200);
     expect(res.body.data.accessToken).toBeTruthy();
     expect(res.body.data.refreshToken).toBeTruthy();
   });
 
   test("logout returns 200", async () => {
     const { refreshToken } = await registerUser();
-    await api().post("/auth/logout").send({ refreshToken }).expect(200);
+    await apiPost("/auth/logout").send({ refreshToken }).expect(200);
   });
 });

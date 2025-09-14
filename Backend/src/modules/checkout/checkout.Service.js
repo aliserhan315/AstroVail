@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import Cart from "../cart/cart.model.js";
 import Star from "../star/star.model.js";
-import Order from "./order.model.js";
+import Order from "../checkout/order.model.js";
 import User from "../user/user.model.js";
 
-export default checkoutService = {
+export const CheckoutService = {
   async create(userId) {
     const session = await mongoose.startSession();
     try {
@@ -16,7 +16,6 @@ export default checkoutService = {
       }
 
       const starIds = cart.items.map((i) => i.starId);
-
       const amount = cart.items.reduce((sum, it) => sum + (it.priceCents || 0), 0);
 
       const [order] = await Order.create(
@@ -86,22 +85,24 @@ export default checkoutService = {
 
       await session.commitTransaction();
 
-      try {
-        const orderDoc = await Order.findById(order._id).lean();
-        const buyer = await User.findById(userId).lean();
-        const { OwnershipBlockchain } = await import("../../services/ownership.service.js");
+      if (process.env.NODE_ENV !== "test") {
+        try {
+          const orderDoc = await Order.findById(order._id).lean();
+          const buyer = await User.findById(userId).lean();
+          const { OwnershipBlockchain } = await import("../../services/ownership.service.js");
 
-        for (const it of orderDoc.items) {
-          const targetEmail = (it.recipientEmail || buyer?.email || "").trim();
-          if (!targetEmail) continue;
-          await OwnershipBlockchain.mintToEmail({
-            email: targetEmail,
-            starId: it.starId,
-            orderId: String(orderDoc._id),
-          });
+          for (const it of orderDoc.items) {
+            const targetEmail = (it.recipientEmail || buyer?.email || "").trim();
+            if (!targetEmail) continue;
+            await OwnershipBlockchain.mintToEmail({
+              email: targetEmail,
+              starId: it.starId,
+              orderId: String(orderDoc._id),
+            });
+          }
+        } catch (e) {
+          console.error("Minting after checkout failed:", e);
         }
-      } catch (e) {
-        console.error("Minting after checkout failed:", e);
       }
 
       return await Order.findById(order._id).lean();
@@ -173,17 +174,19 @@ export default checkoutService = {
 
       await session.commitTransaction();
 
-      try {
-        const orderDoc = await Order.findById(orderId).lean();
-        const buyer = await User.findById(orderDoc.userId).lean();
-        const { OwnershipBlockchain } = await import("../../services/ownership.service.js");
-        for (const item of orderDoc.items) {
-          const targetEmail = (item.recipientEmail || buyer?.email || "").trim();
-          if (!targetEmail) continue;
-          await OwnershipBlockchain.mintToEmail({ email: targetEmail, starId: item.starId, orderId });
+      if (process.env.NODE_ENV !== "test") {
+        try {
+          const orderDoc = await Order.findById(orderId).lean();
+          const buyer = await User.findById(orderDoc.userId).lean();
+          const { OwnershipBlockchain } = await import("../../services/ownership.service.js");
+          for (const item of orderDoc.items) {
+            const targetEmail = (item.recipientEmail || buyer?.email || "").trim();
+            if (!targetEmail) continue;
+            await OwnershipBlockchain.mintToEmail({ email: targetEmail, starId: item.starId, orderId });
+          }
+        } catch (e) {
+          console.error("Minting after finalize failed:", e);
         }
-      } catch (e) {
-        console.error("Minting after finalize failed:", e);
       }
 
       return await Order.findById(orderId).lean();

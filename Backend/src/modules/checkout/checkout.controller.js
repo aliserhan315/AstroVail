@@ -1,10 +1,10 @@
 
 import { success, error } from "../../utils/response.js";
-import checkoutService from "./checkout.service.js";
+import { CheckoutService } from "./checkout.service.js";
 
 export async function createCheckout(req, res) {
   try {
-    const out = await checkoutService.create(req.user.sub);
+    const out = await CheckoutService.create(req.user.sub);
     return success(res, out, out?.status === "paid" ? "Order paid and finalized" : "Some items sold out");
   } catch (e) {
     console.error("createCheckout:", e);
@@ -14,7 +14,7 @@ export async function createCheckout(req, res) {
 
 export async function finalizeOrderTest(req, res) {
   try {
-    const out = await checkoutService.finalizePaid({ orderId: req.body.orderId });
+    const out = await CheckoutService.finalizePaid({ orderId: req.body.orderId });
     return success(res, out, "Order finalized");
   } catch (e) {
     console.error("finalizeOrderTest:", e);
