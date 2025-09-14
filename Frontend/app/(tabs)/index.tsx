@@ -50,7 +50,7 @@ export default function HomeScreen() {
 
     const items = (mine?.items ?? []).map((s: any) => ({
       id: String(s.id ?? s._id),
-      name: String(s.name ?? s.designation ?? "Unnamed"),
+      name: String(s.displayName ?? "Unnamed"),
       mag: s.mag != null ? String(s.mag) : "—",
       ra: s.ra != null ? String(s.ra) : "—",
       dec: s.dec != null ? String(s.dec) : "—",

@@ -13,7 +13,7 @@ import { CertificateStyle } from "@/types/cart";
 import GiftStarPill from "@/components/gift/GiftStarPill";
 import styles from "./gift.styles";
 
-import { CartAPI, CheckoutAPI } from "@/lib/endpoint";
+import { CartAPI, CheckoutAPI, StarsAPI } from "@/lib/endpoint";
 
 export default function GiftScreen() {
   const insets = useSafeAreaInsets();
@@ -47,10 +47,33 @@ export default function GiftScreen() {
           ? { recipientEmail: email.trim() || undefined }
           : { recipientEmail: undefined };
 
+      const failed: { id: string; reason: string }[] = [];
       for (const it of items) {
-        await CartAPI.add(it.starId, it.qty ?? 1);
-        await CartAPI.update(it.starId, patch);
-        dispatch(updateItem({ starId: it.starId, patch: { ...patch, message: mode === "gift" ? message : undefined } }));
+        try {
+          await CartAPI.add(it.starId, it.qty ?? 1);
+          await CartAPI.update(it.starId, patch);
+          dispatch(
+            updateItem({
+              starId: it.starId,
+              patch: { ...patch, message: mode === "gift" ? message : undefined },
+            })
+          );
+        } catch (e: any) {
+          const reason = e?.response?.data?.message || e?.message || "Unavailable";
+          failed.push({ id: it.starId, reason });
+        }
+      }
+
+      if (failed.length > 0) {
+        for (const f of failed) {
+          dispatch(removeItem(f.id));
+          try { await CartAPI.remove(f.id); } catch {}
+        }
+        Alert.alert(
+          "Some stars are unavailable",
+          `Removed ${failed.length} purchased star(s) from your cart. Please review and try again.`
+        );
+        return;
       }
       const order = await CheckoutAPI.create();
 
@@ -58,12 +81,26 @@ export default function GiftScreen() {
         dispatch(clear());
         router.replace("/(tabs)"); 
       } else if (order?.status === "failed_sold_out") {
-        Alert.alert("Sold out", "One or more selected stars were purchased by someone else. Please review your cart.");
-      } else {
-        Alert.alert("Checkout", "Unexpected state. Please try again.");
+        const soldOut: string[] = [];
+        for (const it of items) {
+          try {
+            const star = await StarsAPI.get(it.starId);
+            const doc: any = star?.data ?? star;
+            if (doc?.owner) {
+              soldOut.push(it.starId);
+            }
+          } catch {}
+        }
+        if (soldOut.length > 0) {
+          for (const id of soldOut) {
+            dispatch(removeItem(id));
+            try { await CartAPI.remove(id); } catch {}
+          }
+        }
+       
       }
     } catch (e: any) {
-      Alert.alert("Checkout failed", e?.response?.data?.message ?? e?.message ?? "Please try again.");
+      console.log(e);
     }
   };
 
