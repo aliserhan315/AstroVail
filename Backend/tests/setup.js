@@ -3,7 +3,9 @@ import dotenv from "dotenv";
 import { jest } from "@jest/globals";
 
 dotenv.config();
-// Use in-memory MongoDB by default for local Jest runs
+
+if (!process.env.NODE_ENV) process.env.NODE_ENV = "test";
+
 if (!process.env.USE_MEM_MONGO) {
   process.env.USE_MEM_MONGO = "true";
 }
@@ -28,11 +30,29 @@ beforeAll(async () => {
     return;
   }
 
+  const mustBeTestDb = (u) => {
+    try {
+      const i = u.indexOf("/");
+      const dbPart = i >= 0 ? u.slice(i + 1).split("?")[0] : "";
+      const dbName = (dbPart || "").trim();
+      return /test/i.test(dbName);
+    } catch {
+      return false;
+    }
+  };
+
   if (!uri) {
     throw new Error(
-      "No MongoDB URI provided for tests. Set MONGODB_URI or enable USE_MEM_MONGO=true."
+      "No MongoDB URI provided for tests. Set MONGODB_URI_TEST or enable USE_MEM_MONGO=true."
     );
   }
+
+  if (!process.env.MONGODB_URI_TEST && process.env.MONGODB_URI && !mustBeTestDb(uri)) {
+    throw new Error(
+      "Refusing to run tests against non-test database. Set MONGODB_URI_TEST (with a test DB) or USE_MEM_MONGO=true."
+    );
+  }
+
   await mongoose.connect(uri);
   connected = true;
 });
