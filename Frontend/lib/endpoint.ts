@@ -1,5 +1,7 @@
 import api from "@/lib/api";
 
+import { UpdateCartItemPayload } from "@/types/cart";
+
 export const AuthAPI = {
   async register(payload: {
     firstName?: string;
@@ -60,10 +62,7 @@ export const CartAPI = {
   add(starId: string, qty = 1) {
     return api.post("/cart/items", { starId, qty }).then((r) => r.data.data);
   },
-  update(
-    starId: string,
-    patch: { recipientEmail?: string; certificateStyle?: "classic" | "cosmic" }
-  ) {
+  update(starId: string, patch: UpdateCartItemPayload) {
     return api.patch(`/cart/items/${starId}`, patch).then((r) => r.data.data);
   },
   remove(starId: string) {

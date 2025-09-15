@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, StatusBar, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 
 import Background from "@/components/Background";
 import Segmented from "@/components/ui/Segmented";
@@ -16,6 +17,8 @@ import GiftStarPill from "@/components/gift/GiftStarPill";
 import styles from "./gift.styles";
 
 import { CartAPI, CheckoutAPI, StarsAPI } from "@/lib/endpoint";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000/api";
 
 export default function GiftScreen() {
   const insets = useSafeAreaInsets();
@@ -36,6 +39,11 @@ export default function GiftScreen() {
     dec: "+38°47′",
     constellation: "Lyra",
   }));
+
+  const selectedStyle = useMemo<CertificateStyle>(() => {
+    const s = items?.[0]?.certificateStyle as CertificateStyle | undefined;
+    return s || CertificateStyle.Classic;
+  }, [items]);
 
   const setStyle = (style: CertificateStyle) => {
     items.forEach((it) =>
@@ -65,12 +73,14 @@ export default function GiftScreen() {
       for (const it of items) {
         try {
           const styleWire =
-            (it.certificateStyle ?? CertificateStyle.Classic) === CertificateStyle.Cosmic
-              ? ("cosmic" as const)
-              : ("classic" as const);
+            (it.certificateStyle ?? CertificateStyle.Classic) as CertificateStyle;
 
           await CartAPI.add(it.starId, it.qty ?? 1);
-          await CartAPI.update(it.starId, { ...basePatch, certificateStyle: styleWire });
+          await CartAPI.update(it.starId, {
+            ...basePatch,
+            message: mode === "gift" ? message : undefined, 
+            certificateStyle: styleWire,
+          });
 
           dispatch(
             updateItem({
@@ -175,16 +185,30 @@ export default function GiftScreen() {
           </View>
 
           {pills.map((s) => (
-            <GiftStarPill
-              key={s.id}
-              star={s}
-              onRemove={async () => {
-                dispatch(removeItem(s.id));
-                try {
-                  await CartAPI.remove(s.id);
-                } catch {}
-              }}
-            />
+            <View key={s.id}>
+              <GiftStarPill
+                star={s}
+                onRemove={async () => {
+                  dispatch(removeItem(s.id));
+                  try {
+                    await CartAPI.remove(s.id);
+                  } catch {}
+                }}
+              />
+              <Pressable
+                onPress={() =>
+                  WebBrowser.openBrowserAsync(
+                    `${API_URL}/certificates/preview.pdf?starId=${s.id}` +
+                    `&style=${encodeURIComponent(selectedStyle)}` +
+                    `&recipientEmail=${encodeURIComponent(mode === "gift" ? email : "")}` +
+                    `&message=${encodeURIComponent(mode === "gift" ? message : "")}`
+                  )
+                }
+                style={{ marginTop: 8, alignSelf: "flex-start" }}
+              >
+                <Text style={{ color: "#9ddcff" }}>Preview certificate</Text>
+              </Pressable>
+            </View>
           ))}
 
           {mode === "gift" && (
@@ -213,6 +237,9 @@ export default function GiftScreen() {
           <View style={styles.pillsRow}>
             <Pressable onPress={() => setStyle(CertificateStyle.Classic)} style={styles.pill}>
               <Text style={styles.pillText}>Classic</Text>
+            </Pressable>
+            <Pressable onPress={() => setStyle(CertificateStyle.Modern)} style={styles.pill}>
+              <Text style={styles.pillText}>Modern</Text>
             </Pressable>
             <Pressable onPress={() => setStyle(CertificateStyle.Cosmic)} style={styles.pill}>
               <Text style={styles.pillText}>Cosmic</Text>
