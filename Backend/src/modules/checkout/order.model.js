@@ -1,13 +1,15 @@
+// modules/checkout/order.model.js
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const OrderItemSchema = new Schema({
-  starId:     { type: Schema.Types.ObjectId, ref: "Star", required: true },
-  priceCents: { type: Number, required: true },
+  starId:         { type: Schema.Types.ObjectId, ref: "Star", required: true },
+  priceCents:     { type: Number, required: true },
   recipientEmail: { type: String, default: null },
+  message:        { type: String, default: null }, 
   certificateStyle: {
     type: String,
-    enum: ["classic", "cosmic"],
+    enum: ["classic", "modern", "cosmic"], 
     default: "classic",
   },
 }, { _id: false });
