@@ -11,13 +11,14 @@
     "stars:enrich:names": "node scripts/enrich-names-simbad.js",
     "dev": "nodemon src/server.js",
     "import:gaia": "node scripts/seed-gaia.js",
-    "start": "node src/server.js",
+    "start": "node -r dotenv/config src/server.js",
     "docs": "node -e \"console.log('OpenAPI at /api/docs')\"",
     "enrich:names": "node scripts/enrich-names-simbad.js",
     "format": "prettier --write .",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
-    "ci": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --ci --coverage --runInBand"
+    "ci": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --ci --coverage --runInBand",
+    "mint": "node -r dotenv/config ./scripts/mint-to-email.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",
@@ -44,6 +45,7 @@
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "p-limit": "^7.1.0",
+    "puppeteer": "^24.21.0",
     "sharp": "^0.34.3",
     "stripe": "^18.5.0",
     "swagger-jsdoc": "^6.2.8",

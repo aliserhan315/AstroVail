@@ -2,7 +2,7 @@ const hre = require("hardhat");
 const { loadAddress, FILE } = require("./_deployPath");
 
 async function main() {
-  // Usage: npx hardhat run scripts/transferOwner.js [--network localhost] -- <newOwner>
+  
   const args = process.argv.slice(2);
   const dash = args.indexOf("--");
   const [newOwner] = (dash === -1 ? args : args.slice(dash + 1));
