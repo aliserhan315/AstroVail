@@ -27,6 +27,7 @@ export const CheckoutService = {
               starId: i.starId,
               priceCents: i.priceCents || 0,
               recipientEmail: i.recipientEmail || null,
+              message: i.message || null, 
               certificateStyle: i.certificateStyle || "classic",
             })),
             amount,
@@ -68,14 +69,12 @@ export const CheckoutService = {
 
       await Order.updateOne({ _id: order._id }, { $set: { status: "paid" } }).session(session);
       await Cart.updateOne({ userId }, { $pull: { items: { starId: { $in: starIds } } } }).session(session);
-
       await session.commitTransaction();
 
       try {
-        const orderDoc = await Order.findById(order._id).lean();
-        await notifyOrderCertificate(orderDoc);
+        await notifyOrderCertificate(order._id);
       } catch (e) {
-        console.error("Notify n8n failed:", e);
+        console.error("Notify n8n failed:", e?.message || e);
       }
 
       return await Order.findById(order._id).lean();
@@ -96,7 +95,7 @@ export const CheckoutService = {
       if (!order) throw Object.assign(new Error("Order not found"), { status: 404 });
       if (order.status === "paid") {
         await session.commitTransaction();
-        try { await notifyOrderCertificate(order.toObject()); } catch {}
+        try { await notifyOrderCertificate(order._id); } catch {}
         return order.toObject();
       }
       if (!["requires_payment", "processing"].includes(order.status)) {
@@ -106,11 +105,8 @@ export const CheckoutService = {
       await Order.updateOne({ _id: orderId }, { $set: { status: "paid" } }).session(session);
       await session.commitTransaction();
 
-      try {
-        const orderDoc = await Order.findById(orderId).lean();
-        await notifyOrderCertificate(orderDoc);
-      } catch (e) {
-        console.error("Notify n8n failed:", e);
+      try { await notifyOrderCertificate(orderId); } catch (e) {
+        console.error("Notify n8n failed:", e?.message || e);
       }
 
       return await Order.findById(orderId).lean();
