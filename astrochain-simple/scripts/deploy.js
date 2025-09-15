@@ -10,7 +10,6 @@ async function main() {
 
   const address = await token.getAddress();
   console.log("OwnershipToken deployed:", address);
-  // save locally for convenience when running without args/env
   try { saveAddress(address); } catch {}
 
   const admin = process.env.ADMIN_ADDRESS;
@@ -20,7 +19,6 @@ async function main() {
     console.log("Ownership transferred to:", admin);
   }
 
-  // Persist final owner regardless of transfer
   try {
     const currentOwner = await token.owner();
     saveOwnership(currentOwner);

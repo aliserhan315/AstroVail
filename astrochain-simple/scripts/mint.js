@@ -3,7 +3,6 @@ const hre = require("hardhat");
 const { loadAddress, FILE } = require("./_deployPath");
 
 async function main() {
-  // Support both direct args and npm script style with -- separator
   const args = process.argv.slice(2);
   const dash = args.indexOf("--");
   const [addr, maybeContract] = (dash === -1 ? args : args.slice(dash + 1));
@@ -18,7 +17,6 @@ async function main() {
   }
 
   const token = await hre.ethers.getContractAt("OwnershipToken", contractAddress);
-  // Ensure we mint from the actual contract owner signer
   const onChainOwner = await token.owner();
   const signers = await hre.ethers.getSigners();
   const ownerSigner = signers.find(s => s.address.toLowerCase() === onChainOwner.toLowerCase());
