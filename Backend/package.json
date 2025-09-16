@@ -21,6 +21,7 @@
     "mint": "node -r dotenv/config ./scripts/mint-to-email.mjs"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "astronomy-engine": "^2.1.19",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
@@ -49,7 +50,8 @@
     "sharp": "^0.34.3",
     "stripe": "^18.5.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.1.8"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.0.0",
