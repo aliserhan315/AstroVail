@@ -1,13 +1,16 @@
 import api from "@/lib/api";
-
 import { UpdateCartItemPayload } from "@/types/cart";
+import type {
+  AICertificateMessagePayload,
+  AICertificateMessageResponse,
+} from "@/types/ai";
 
 export const AuthAPI = {
   async register(payload: {
     firstName?: string;
     lastName?: string;
     displayName?: string;
-    name?: string; 
+    name?: string;
     email: string;
     password: string;
   }) {
@@ -70,7 +73,6 @@ export const CartAPI = {
   },
 };
 
-
 export const EventsAPI = {
   list(params?: {
     from?: string;
@@ -107,6 +109,14 @@ export const MeAPI = {
   },
   updateDevice(payload: any) {
     return api.patch("/me/device", payload).then((r) => r.data.data);
+  },
+};
+
+export const AIAPI = {
+  certificateMessage(payload: AICertificateMessagePayload) {
+    return api
+      .post("/ai/certificate-message", payload)
+      .then((r) => r.data.data as AICertificateMessageResponse);
   },
 };
 

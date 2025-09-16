@@ -27,7 +27,7 @@ export const CheckoutService = {
               starId: i.starId,
               priceCents: i.priceCents || 0,
               recipientEmail: i.recipientEmail || null,
-              message: i.message || null, 
+              message: i.message || null,
               certificateStyle: i.certificateStyle || "classic",
             })),
             amount,
@@ -47,7 +47,10 @@ export const CheckoutService = {
         if (email) {
           const existing = await User.findOne({ email }).session(session).lean();
           if (existing) owner = existing._id;
-          else { owner = null; pendingOwnerEmail = email; }
+          else {
+            owner = null;
+            pendingOwnerEmail = email;
+          }
         }
 
         ops.push({
@@ -95,7 +98,9 @@ export const CheckoutService = {
       if (!order) throw Object.assign(new Error("Order not found"), { status: 404 });
       if (order.status === "paid") {
         await session.commitTransaction();
-        try { await notifyOrderCertificate(order._id); } catch {}
+        try {
+          await notifyOrderCertificate(order._id);
+        } catch {}
         return order.toObject();
       }
       if (!["requires_payment", "processing"].includes(order.status)) {
@@ -105,7 +110,9 @@ export const CheckoutService = {
       await Order.updateOne({ _id: orderId }, { $set: { status: "paid" } }).session(session);
       await session.commitTransaction();
 
-      try { await notifyOrderCertificate(orderId); } catch (e) {
+      try {
+        await notifyOrderCertificate(orderId);
+      } catch (e) {
         console.error("Notify n8n failed:", e?.message || e);
       }
 

@@ -9,9 +9,7 @@ import stars from '../modules/star/stars.routes.js';
 import overlayRoute from '../modules/overlay/overlay.routes.js';
 import ownership from '../modules/ownership/ownership.routes.js';
 import certificates from '../modules/certificates/certificates.routes.js';
-
-
-
+import ai from '../modules/ai/ai.routes.js';
 
 const router = Router();
 
@@ -25,4 +23,6 @@ router.use('/me',user);
 router.use('/overlay', overlayRoute);
 router.use('/ownership', ownership);
 router.use('/certificates', certificates);
+router.use('/ai', ai);
+
 export default router;
