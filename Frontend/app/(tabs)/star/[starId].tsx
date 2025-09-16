@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {ActivityIndicator,ScrollView,StyleSheet,Text,  View,  Pressable, Modal, Alert} from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View, Pressable, Modal, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
-
 import Background from "@/components/Background";
 import { Colors } from "@/constants/Colors";
 import { StarsAPI, CartAPI } from "@/lib/endpoint";
@@ -43,10 +42,7 @@ function toStarForCard(s: StarDoc): StarForCard {
     displayName: s.displayName ?? null,
     magnitude: s.magnitude,
     constellation: s.constellation ?? null,
-    owner:
-      typeof s.owner === "string" || !s.owner
-        ? null
-        : { name: s.owner.name ?? null },
+    owner: typeof s.owner === "string" || !s.owner ? null : { name: s.owner.name ?? null },
   };
 }
 
@@ -90,10 +86,7 @@ export default function StarDetailsScreen() {
     };
   }, [starId]);
 
-  const uiStar = useMemo<StarForCard | null>(
-    () => (star ? toStarForCard(star) : null),
-    [star]
-  );
+  const uiStar = useMemo<StarForCard | null>(() => (star ? toStarForCard(star) : null), [star]);
 
   const ownerId = useMemo(() => {
     if (!star?.owner) return undefined;
@@ -110,9 +103,7 @@ export default function StarDetailsScreen() {
   const headerTitle = useMemo(() => {
     if (!star) return "—";
     const renamed = !!(star.displayName && star.displayName !== star.baseName);
-    return renamed
-      ? `${star.displayName}`
-      : star.displayName ?? star.baseName;
+    return renamed ? `${star.displayName}` : star.displayName ?? star.baseName;
   }, [star]);
 
   const story = useMemo(() => {
@@ -147,11 +138,7 @@ export default function StarDetailsScreen() {
       <View style={[styles.fill, styles.center, { padding: 24 }]}>
         <Background />
         <Text style={styles.error}>{err ?? "Star not found."}</Text>
-        <PrimaryButton
-          text="Go Back"
-          onPress={() => router.back()}
-          style={{ marginTop: 12 }}
-        />
+        <PrimaryButton text="Go Back" onPress={() => router.back()} style={{ marginTop: 12 }} />
       </View>
     );
   }
@@ -182,10 +169,7 @@ export default function StarDetailsScreen() {
     <View style={styles.fill}>
       <Background />
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollPad,
-          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 },
-        ]}
+        contentContainerStyle={[styles.scrollPad, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }]}
         showsVerticalScrollIndicator={false}
       >
         <Pressable onPress={() => router.back()} style={{ marginBottom: 8 }}>
@@ -194,9 +178,7 @@ export default function StarDetailsScreen() {
 
         <View style={{ alignItems: "center", marginBottom: 8 }}>
           <Text style={{ fontSize: 36, marginBottom: 6 }}>🌟</Text>
-          <Text style={{ color: Colors.text, fontSize: 28, fontWeight: "800" }}>
-            {headerTitle}
-          </Text>
+          <Text style={{ color: Colors.text, fontSize: 28, fontWeight: "800" }}>{headerTitle}</Text>
           <Text style={{ color: Colors.tint, fontSize: 14, marginTop: 4 }}>
             {(star.constellation ?? "—") + " Constellation"}
           </Text>
@@ -212,6 +194,10 @@ export default function StarDetailsScreen() {
             body={star?.story?.trim() ? (star.story as string) : story}
             footer={
               <View style={{ gap: 12 }}>
+                <PrimaryButton
+                  text="Locate in Sky"
+                  onPress={() => router.push({ pathname: "/(tabs)/overlay/overlay", params: { starId: star._id } })}
+                />
                 <PrimaryButton
                   text="Edit Star"
                   onPress={() => {
@@ -232,11 +218,7 @@ export default function StarDetailsScreen() {
           <SectionCard style={{ gap: 12, marginTop: 8 }}>
             <PrimaryButton text="Add To cart" onPress={handleAddToGift} />
             <PrimaryButton text="Send As Gift" onPress={handleAddToGift} />
-            <PrimaryButton
-              text="Check Similar Stars"
-              variant="secondary"
-              onPress={() => router.push("/(tabs)/Stars")}
-            />
+            <PrimaryButton text="Check Similar Stars" variant="secondary" onPress={() => router.push("/(tabs)/Stars")} />
           </SectionCard>
         )}
       </ScrollView>
@@ -245,13 +227,7 @@ export default function StarDetailsScreen() {
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: 20 }}>
           <SectionCard style={{ padding: 16, gap: 12 }}>
             <Text style={{ color: Colors.text, fontSize: 20, fontWeight: "700" }}>Edit Your Star</Text>
-            <LabeledInput
-              label="Name"
-              value={newName}
-              onChangeText={setNewName}
-              placeholder="New display name"
-              autoCapitalize="words"
-            />
+            <LabeledInput label="Name" value={newName} onChangeText={setNewName} placeholder="New display name" autoCapitalize="words" />
             <LabeledInput
               label="Story"
               value={newStory}
@@ -269,7 +245,7 @@ export default function StarDetailsScreen() {
                     setSaving(true);
                     const patch: any = {};
                     patch.displayName = newName.trim();
-                    patch.story = newStory; 
+                    patch.story = newStory;
                     const updated = await StarsAPI.update(star._id, patch);
                     const doc: StarDoc = (updated?.data ?? updated) as any;
                     setStar(doc);
@@ -281,11 +257,7 @@ export default function StarDetailsScreen() {
                   }
                 }}
               />
-              <PrimaryButton
-                text="Cancel"
-                variant="secondary"
-                onPress={() => setEditOpen(false)}
-              />
+              <PrimaryButton text="Cancel" variant="secondary" onPress={() => setEditOpen(false)} />
             </View>
           </SectionCard>
         </View>
