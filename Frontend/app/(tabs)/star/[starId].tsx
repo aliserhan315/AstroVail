@@ -10,7 +10,7 @@ import StoryCard from "@/components/Star/StoryCard/StoryCard";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import SectionCard from "@/components/ui/SectionCard";
 import LabeledInput from "@/components/ui/LabeledInput";
-
+import { openCertificate } from "@/components/certificate/Crttificatehelper";
 import { useAppDispatch } from "@/state/hooks";
 import { addOrUpdateItem } from "@/state/slices/cartSlice";
 import { CertificateStyle } from "@/types/cart";
@@ -206,10 +206,16 @@ export default function StarDetailsScreen() {
                     setEditOpen(true);
                   }}
                 />
-                <PrimaryButton
-                  text="Check Similar Stars"
-                  variant="secondary"
-                  onPress={() => router.push("/(tabs)/Stars")}
+               <PrimaryButton
+                  text="View Certificate"
+                  onPress={() =>
+                    openCertificate({
+                      starId: star._id,
+                      style: "cosmic",
+                      recipientEmail: "",
+                      message: star.story || "",       
+                    })
+                  }
                 />
               </View>
             }
