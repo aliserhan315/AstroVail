@@ -1,9 +1,8 @@
+
 import { Router } from "express";
-import { createCheckout, finalizeOrderTest } from "../checkout/checkout.controller.js";
+import { previewPdf } from "./certificate.controller.js";
 
 const router = Router();
-
-router.post("/create",  createCheckout);
-router.post("/finalize",  finalizeOrderTest);
+router.get("/preview.pdf", previewPdf);
 
 export default router;
