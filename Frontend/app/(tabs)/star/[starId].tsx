@@ -221,7 +221,7 @@ export default function StarDetailsScreen() {
             }
           />
         ) : (
-          <SectionCard style={{ gap: 12, marginTop: 8 }}>
+          <SectionCard style={{ gap: 12, marginTop: 8,marginleft:8,marginRight:8 }}>
             <PrimaryButton text="Add To cart" onPress={handleAddToGift} />
             <PrimaryButton text="Send As Gift" onPress={handleAddToGift} />
             <PrimaryButton text="Check Similar Stars" variant="secondary" onPress={() => router.push("/(tabs)/Stars")} />
