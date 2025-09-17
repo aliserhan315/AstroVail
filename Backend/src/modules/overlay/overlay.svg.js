@@ -29,17 +29,18 @@ export function arrowSVG(x, y, angleDeg, len, w, h) {
 
 export function messageSVG(lines, w, h) {
   const pad = 24;
-  const lineH = 36;
-  const rectH = Math.min(h * 0.25, pad * 2 + lineH * Math.max(1, lines.length));
+  const lineH = 32;
   const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
-  const text = lines
-    .map((l, i) => `<text x="${pad * 2}" y="${pad + 28 + i * lineH}" font-size="28" font-family="Arial, Helvetica, sans-serif" fill="#fff" stroke="#000" stroke-width="1.5">${esc(l)}</text>`) 
+  const clamped = Array.isArray(lines) ? lines.slice(0, 6) : [String(lines || "")];
+  const height = Math.min(h * 0.3, pad * 2 + lineH * clamped.length + 10);
+  const text = clamped
+    .map((l, i) => `<text x="${pad * 2}" y="${pad + 26 + i * lineH}" font-size="24" fill="#fff" stroke="#000" stroke-width="1.2">${esc(l)}</text>`)
     .join("\n");
   const svg = `
 <svg width="100%" height="100%" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="${pad}" y="${pad}" width="${w - pad * 2}" height="${rectH}" rx="16" ry="16" fill="rgba(0,0,0,0.55)" stroke="rgba(255,255,255,0.8)" stroke-width="2"/>
+  <rect x="${pad}" y="${pad}" width="${w - pad * 2}" height="${height}" rx="14" ry="14" fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
   ${text}
-  <text x="${w - pad * 2}" y="${pad + rectH - 12}" text-anchor="end" font-size="20" fill="#ddd">AstroVail</text>
-  </svg>`;
+  <text x="${w - pad * 2}" y="${pad + height - 12}" text-anchor="end" font-size="16" fill="#ddd">AstroVail</text>
+</svg>`;
   return Buffer.from(svg);
 }
