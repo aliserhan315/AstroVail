@@ -1,27 +1,44 @@
 import sharp from "sharp";
 import crypto from "crypto";
 
-import Star from "../star/star.model.js"; 
+import Star from "../star/star.model.js";
 import { solveWithAstrometry } from "./plate.service.js";
-import { wcsProjectXY } from "../utils/astro.js";
+import { wcsProjectXY } from "../../utils/astro.js";
 import { edgePointer, distanceInFOVs, humanizeHint } from "./overlay.math.js";
 import { starGuidanceTips } from "./overlay.tips.service.js";
-import { circleSVG, arrowSVG } from "./overlay.svg.js";
-import { success, error } from "../utils/http.js";
+import { circleSVG, arrowSVG, messageSVG } from "./overlay.svg.js";
+import { success, error } from "../../utils/response.js";
 
 const cache = new Map();
 const TTL = 120_000; 
 
 export async function postOverlay(req, res) {
   try {
-    const { userStarId, format } = req.body;
-    if (!req.file?.buffer || !userStarId) {
+    const { userStarId, format } = req.body || {};
+
+    let imageBuffer = null;
+    if (req.file?.buffer) {
+      imageBuffer = req.file.buffer;
+    } else if (typeof req.body?.imageBase64 === "string" || typeof req.body?.image === "string") {
+      let b64 = String(req.body.imageBase64 || req.body.image);
+      if (b64.startsWith("data:")) {
+        const idx = b64.indexOf(",");
+        b64 = idx >= 0 ? b64.slice(idx + 1) : b64;
+      }
+      try {
+        imageBuffer = Buffer.from(b64, "base64");
+      } catch {
+        return error(res, "Invalid base64 image", 400);
+      }
+    }
+
+    if (!imageBuffer || !userStarId) {
       return error(res, "image and userStarId required", 400);
     }
 
     const hash = crypto
       .createHash("sha1")
-      .update(req.file.buffer)
+      .update(imageBuffer)
       .update(userStarId)
       .digest("hex");
 
@@ -31,24 +48,20 @@ export async function postOverlay(req, res) {
       return success(res, cached.payload);
     }
 
-    // Normalize EXIF rotation and read dimensions
-    const normalized = await sharp(req.file.buffer).rotate().toBuffer();
-    const meta = await sharp(normalized).metadata();
-    const width = meta.width ?? 4000;
-    const height = meta.height ?? 3000;
+    const normalized = await sharp(imageBuffer).rotate().toBuffer();
+    const metaFull = await sharp(normalized).metadata();
+    const widthFull = metaFull.width ?? 4000;
+    const heightFull = metaFull.height ?? 3000;
 
-    // Plate solve
-    const calib = await solveWithAstrometry(normalized);
-    const wcs = {
-      centerRA: calib.ra,
-      centerDec: calib.dec,
-      rotationDeg: calib.rotation,
-      pixScaleArcsec: calib.pixscale,
-      width,
-      height,
-    };
+    const maxDim = Number(process.env.OVERLAY_SOLVE_MAX_DIM || 1600);
+    const resized = await sharp(normalized)
+      .resize({ width: maxDim, height: maxDim, fit: "inside", withoutEnlargement: true })
+      .toBuffer();
+    const metaSmall = await sharp(resized).metadata();
+    const widthSmall = metaSmall.width ?? widthFull;
+    const heightSmall = metaSmall.height ?? heightFull;
+    const scale = Math.max(1, widthFull / Math.max(1, widthSmall));
 
-    // Fetch target star
     const s = await Star.findById(userStarId, {
       ra: 1,
       dec: 1,
@@ -62,6 +75,63 @@ export async function postOverlay(req, res) {
     const targetMag = typeof s.mag === "number" ? s.mag : s.magnitude;
     const label = s.displayName || s.name || "Your star";
 
+    let calib;
+    try {
+      calib = await solveWithAstrometry(resized);
+    } catch (e) {
+      const fallbackTips = [
+        "We couldn't recognize the star field.",
+        "Try a steadier shot with sharper stars.",
+        "Increase exposure or ISO slightly.",
+        "Include a wider sky region if possible.",
+      ];
+
+      if (format === "png") {
+        const svg = messageSVG([
+          `Could not locate ${label || "target"}.`,
+          "Make sure stars are in focus and visible.",
+          "Retake and try again.",
+        ], widthFull, heightFull);
+
+        const out = await sharp(normalized)
+          .composite([{ input: svg, gravity: "northwest", left: 0, top: 0 }])
+          .png()
+          .toBuffer();
+        res.setHeader("Content-Type", "image/png");
+        return res.send(out);
+      }
+
+      return success(
+        res,
+        {
+          solved: false,
+          reason: (e && e.message) || "solve_failed",
+          image: { width: widthFull, height: heightFull },
+          inFrame: null,
+          guidance: {
+            type: "unsolved",
+            hint: `We couldn't confirm ${label || "the star"} in this photo. Try another photo with clearer stars.`,
+            suggestions: fallbackTips,
+          },
+          target: { name: label, ra: s.ra, dec: s.dec },
+          links: {
+            skyMap: `https://server8.sky-map.org/starview?ra=${encodeURIComponent(s.ra)}&de=${encodeURIComponent(s.dec)}&zoom=7`,
+            aladin: `https://aladin.u-strasbg.fr/AladinLite/?target=${encodeURIComponent(s.ra+" "+s.dec)}&fov=1&survey=P%2FDSS2%2Fcolor`,
+          },
+        },
+        "OK"
+      );
+    }
+
+    const wcs = {
+      centerRA: calib.ra,
+      centerDec: calib.dec,
+      rotationDeg: calib.rotation,
+      pixScaleArcsec: calib.pixscale / scale,
+      width: widthFull,
+      height: heightFull,
+    };
+
     const { x, y, inFrame } = wcsProjectXY(s.ra, s.dec, wcs);
 
     let payload;
@@ -74,7 +144,7 @@ export async function postOverlay(req, res) {
       });
       payload = {
         solved: true,
-        image: { width, height },
+        image: { width: widthFull, height: heightFull },
         center: { ra: calib.ra, dec: calib.dec },
         inFrame: true,
         markers: [{ type: "circle", x, y, r, label }],
@@ -82,13 +152,13 @@ export async function postOverlay(req, res) {
         ai: ai || undefined,
       };
     } else {
-      const ptr = edgePointer(x, y, width, height, 24);
+      const ptr = edgePointer(x, y, widthFull, heightFull, 24);
       const distanceFOV = distanceInFOVs(
         { ra: calib.ra, dec: calib.dec },
         { ra: s.ra, dec: s.dec },
-        calib.pixscale,
-        width,
-        height
+        calib.pixscale / scale,
+        widthFull,
+        heightFull
       );
       const ai = await starGuidanceTips({
         inFrame: false,
@@ -99,7 +169,7 @@ export async function postOverlay(req, res) {
       });
       payload = {
         solved: true,
-        image: { width, height },
+        image: { width: widthFull, height: heightFull },
         center: { ra: calib.ra, dec: calib.dec },
         inFrame: false,
         guidance: {
@@ -127,16 +197,16 @@ export async function postOverlay(req, res) {
           payload.markers[0].y,
           payload.markers[0].r,
           payload.markers[0].label,
-          width,
-          height
+          widthFull,
+          heightFull
         )
       : arrowSVG(
           payload.guidance.x,
           payload.guidance.y,
           payload.guidance.angleDeg,
-          Math.min(width, height) / 3,
-          width,
-          height
+          Math.min(widthFull, heightFull) / 3,
+          widthFull,
+          heightFull
         );
 
     const out = await sharp(normalized)

@@ -1,41 +1,73 @@
 import axios from "axios";
 import FormData from "form-data";
 
-const API = "https://nova.astrometry.net/api";
+const API = process.env.ASTROMETRY_BASE_URL || "https://nova.astrometry.net/api";
 const RETRY = { tries: 2, gap: 1500 };
+
+const POLL_MS = Number(process.env.ASTROMETRY_POLL_INTERVAL_MS || 2000);
+const JOBID_POLLS = Number(process.env.ASTROMETRY_JOB_ID_MAX_POLLS || 60); 
+const JOB_POLLS = Number(process.env.ASTROMETRY_JOB_MAX_POLLS || 120); 
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function solveWithAstrometry(buffer) {
-  const { data: login } = await axios.post(`${API}/login`, { apikey: process.env.ASTROMETRY_KEY });
+  if (!process.env.ASTROMETRY_KEY) {
+    throw new Error("Astrometry API key missing (ASTROMETRY_KEY)");
+  }
+
+  const client = axios.create({ baseURL: API, timeout: 30000 });
+
+  const { data: login } = await client.post(`/login`, { apikey: process.env.ASTROMETRY_KEY });
+  if (!login?.session) {
+    throw new Error("Astrometry login failed (no session)");
+  }
+
+  // Optional solving hints via env (JSON string)
+  let hints = {};
+  if (process.env.ASTROMETRY_HINTS) {
+    try { hints = JSON.parse(process.env.ASTROMETRY_HINTS); } catch { /* ignore */ }
+  }
 
   for (let attempt = 1; attempt <= RETRY.tries; attempt++) {
     try {
       const form = new FormData();
-      form.append("request-json", JSON.stringify({ session: login.session }));
+      form.append("request-json", JSON.stringify({ session: login.session, ...hints }));
       form.append("file", buffer, { filename: "sky.jpg" });
 
-      const { data: up } = await axios.post(`${API}/upload`, form, { headers: form.getHeaders() });
+      const { data: up } = await client.post(`/upload`, form, {
+        headers: form.getHeaders(),
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+      });
+
+      if (up?.status !== "success" || typeof up?.subid === "undefined") {
+        const reason = up?.errormessage || up?.error || "unknown";
+        throw new Error(`Astrometry upload failed: ${reason}`);
+      }
 
       let jobId = null;
-      for (let i = 0; i < 30; i++) {
-        const { data } = await axios.get(`${API}/submissions/${up.subid}`);
-        if (Array.isArray(data.jobs) && data.jobs[0]) { jobId = data.jobs[0]; break; }
-        await sleep(2000);
+      await sleep(POLL_MS);
+      for (let i = 0; i < JOBID_POLLS; i++) {
+        const { data } = await client.get(`/submissions/${up.subid}`);
+        if (Array.isArray(data.jobs)) {
+          const found = data.jobs.find((j) => j);
+          if (found) { jobId = found; break; }
+        }
+        await sleep(POLL_MS);
       }
       if (!jobId) throw new Error("Astrometry jobId timeout");
 
-      for (let i = 0; i < 40; i++) {
-        const { data: job } = await axios.get(`${API}/jobs/${jobId}`);
-        if (job.status === "success") {
-          const { data: calib } = await axios.get(`${API}/jobs/${jobId}/calibration`);
+      for (let i = 0; i < JOB_POLLS; i++) {
+        const { data: job } = await client.get(`/jobs/${jobId}`);
+        if (job?.status === "success") {
+          const { data: calib } = await client.get(`/jobs/${jobId}/calibration`);
           if (!("ra" in calib) || !("dec" in calib) || !("rotation" in calib) || !("pixscale" in calib)) {
             throw new Error("Calibration missing fields");
           }
           return calib;
         }
-        if (job.status === "failure") throw new Error("Astrometry failed");
-        await sleep(2000);
+        if (job?.status === "failure") throw new Error("Astrometry failed");
+        await sleep(POLL_MS);
       }
       throw new Error("Astrometry calibration timeout");
     } catch (e) {
