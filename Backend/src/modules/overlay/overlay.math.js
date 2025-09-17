@@ -1,4 +1,4 @@
-import { angularDistanceDeg } from "../utils/astro.js";
+import { angularDistanceDeg } from "../../utils/astro.js";
 
 export function edgePointer(x, y, w, h, pad = 24) {
   const cx = w / 2, cy = h / 2;
