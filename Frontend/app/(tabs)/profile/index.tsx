@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View, StatusBar } from "react-native";
+import { View, StatusBar, Modal, Text, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { useAppDispatch } from "@/state/hooks";
 import { setUser } from "@/state/slices/authSlice";
 import {styles} from "./ProfileScreen.styles";
+import { openCertificate } from "@/components/certificate/Crttificatehelper";
 
 type Me = { _id: string; email: string; firstName?: string | null; lastName?: string | null; displayName?: string | null; avatarUrl?: string | null };
 
@@ -34,6 +35,7 @@ export default function ProfileScreen() {
   const [notifEnabled, setNotifEnabled] = useState<null | boolean>(null);
   const [locSaving, setLocSaving] = useState(false);
   const [locEnabled, setLocEnabled] = useState<null | boolean>(null);
+  const [stylePickerVisible, setStylePickerVisible] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -136,9 +138,63 @@ export default function ProfileScreen() {
           onEnableNotifications={enableNotifications}
           loc={{ saving: locSaving, enabled: locEnabled }}
           onEnableLocation={enableLocation}
-          onOpenCertificates={() => router.push("/")}
+          onOpenCertificates={() => setStylePickerVisible(true)}
         />
       </View>
+      {/* Certificate style picker */}
+      <Modal
+        visible={stylePickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setStylePickerVisible(false)}
+      >
+        <Pressable
+          onPress={() => setStylePickerVisible(false)}
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "center", padding: 24 }}
+        >
+          <Pressable
+            onPress={() => {}}
+            style={{ backgroundColor: "rgba(21, 58, 160, 0.9)", borderRadius: 12, padding: 16 }}
+          >
+            <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>Choose certificate style</Text>
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
+              <Pressable
+                onPress={async () => {
+                  if (!stars?.length) { Alert.alert("No stars", "You have no stars yet."); return; }
+                  await openCertificate({ starId: stars[0]._id, style: "classic" });
+                  setStylePickerVisible(false);
+                }}
+                style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", backgroundColor: "rgba(255,255,255,0.08)" }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "600" }}>Classic</Text>
+              </Pressable>
+              <Pressable
+                onPress={async () => {
+                  if (!stars?.length) { Alert.alert("No stars", "You have no stars yet."); return; }
+                  await openCertificate({ starId: stars[0]._id, style: "modern" });
+                  setStylePickerVisible(false);
+                }}
+                style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", backgroundColor: "rgba(255,255,255,0.08)" }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "600" }}>Modern</Text>
+              </Pressable>
+              <Pressable
+                onPress={async () => {
+                  if (!stars?.length) { Alert.alert("No stars", "You have no stars yet."); return; }
+                  await openCertificate({ starId: stars[0]._id, style: "cosmic" });
+                  setStylePickerVisible(false);
+                }}
+                style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", backgroundColor: "rgba(255,255,255,0.08)" }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "600" }}>Cosmic</Text>
+              </Pressable>
+            </View>
+            <Pressable onPress={() => setStylePickerVisible(false)} style={{ alignSelf: "flex-end", marginTop: 12 }}>
+              <Text style={{ color: "#9ddcff" }}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
