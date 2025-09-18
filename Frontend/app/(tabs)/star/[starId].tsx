@@ -1,19 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View, Pressable, Modal, Alert } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import Background from "@/components/Background";
-import { Colors } from "@/constants/Colors";
 import { StarsAPI, CartAPI } from "@/lib/endpoint";
 import StarInfoCard from "@/components/Star/starInfoCard/StarInfoCard";
-import StoryCard from "@/components/Star/StoryCard/StoryCard";
 import PrimaryButton from "@/components/ui/PrimaryButton";
-import SectionCard from "@/components/ui/SectionCard";
-import LabeledInput from "@/components/ui/LabeledInput";
 import { openCertificate } from "@/components/certificate/Crttificatehelper";
 import { useAppDispatch } from "@/state/hooks";
 import { addOrUpdateItem } from "@/state/slices/cartSlice";
 import { CertificateStyle } from "@/types/cart";
+import StarHeader from "@/components/Star/StarHeader/StarHeader";
+import EditStarModal from "@/components/Star/EditStarModal/EditStarModal";
+import StarActions from "@/components/Star/StarActions/StarActions";
+import { styles } from "./starDetails.style";
 
 type Owner = { _id: string; name?: string | null };
 type StarDoc = {
@@ -55,9 +55,6 @@ export default function StarDetailsScreen() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newStory, setNewStory] = useState("");
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -114,34 +111,15 @@ export default function StarDetailsScreen() {
     const prettyOld = star.baseName;
     if (!renamed) {
       return `Once known as ${prettyOld} and kept under the same name, this star is personally owned by ${who}. 
-      Its legacy is preserved on AstroVail’s registry.`;
+      Its legacy is preserved on AstroVail's registry.`;
     }
     return `Once known to astronomers as ${prettyOld}, the brilliant beacon of the ${
       star.constellation ?? "night"
-    } constellation has been given a new chapter in its cosmic journey. Through AstroVail’s 
+    } constellation has been given a new chapter in its cosmic journey. Through AstroVail's 
     star registry, its light has been renamed ${prettyNew}. This renaming was permanently recorded on 
     the blockchain, ensuring that for generations to come, ${prettyOld} will be remembered not just as a scientific landmark,
      but as a personal tribute carrying the name ${prettyNew}.`;
   }, [star, isOwned, ownerName]);
-
-  if (loading) {
-    return (
-      <View style={[styles.fill, styles.center]}>
-        <Background />
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
-  if (err || !star) {
-    return (
-      <View style={[styles.fill, styles.center, { padding: 24 }]}>
-        <Background />
-        <Text style={styles.error}>{err ?? "Star not found."}</Text>
-        <PrimaryButton text="Go Back" onPress={() => router.back()} style={{ marginTop: 12 }} />
-      </View>
-    );
-  }
 
   const handleAddToGift = async () => {
     if (!star) return;
@@ -165,116 +143,95 @@ export default function StarDetailsScreen() {
     router.push("/(tabs)/gift");
   };
 
+  const handleEditStar = () => {
+    setEditOpen(true);
+  };
+
+  const handleViewCertificate = () => {
+    if (!star) return;
+    openCertificate({
+      starId: star._id,
+      style: "cosmic",
+      recipientEmail: "",
+      message: star.story || "",
+    });
+  };
+
+  const handleLocateInSky = () => {
+    if (!star) return;
+    router.push({ pathname: "/(tabs)/overlay/overlay", params: { starId: star._id } });
+  };
+
+  const handleUpdateStar = async (newName: string, newStory: string) => {
+    if (!star) return;
+    
+    const patch: any = {};
+    patch.displayName = newName.trim();
+    patch.story = newStory;
+    
+    const updated = await StarsAPI.update(star._id, patch);
+    const doc: StarDoc = (updated?.data ?? updated) as any;
+    setStar(doc);
+    setEditOpen(false);
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.fill, styles.center]}>
+        <Background />
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (err || !star) {
+    return (
+      <View style={[styles.fill, styles.center, styles.errorContainer]}>
+        <Background />
+        <Text style={styles.error}>{err ?? "Star not found."}</Text>
+        <PrimaryButton text="Go Back" onPress={() => router.back()} style={styles.backButton} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.fill}>
       <Background />
       <ScrollView
-        contentContainerStyle={[styles.scrollPad, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[styles.scrollPad, { 
+          paddingTop: insets.top + 12, 
+          paddingBottom: insets.bottom + 24 
+        }]}
         showsVerticalScrollIndicator={false}
       >
-        <Pressable onPress={() => router.back()} style={{ marginBottom: 8 }}>
-          <Text style={{ color: Colors.tint, fontSize: 16 }}>← Back</Text>
+        <Pressable onPress={() => router.back()} style={styles.backButtonContainer}>
+          <Text style={styles.backButtonText}>← Back</Text>
         </Pressable>
 
-        <View style={{ alignItems: "center", marginBottom: 8 }}>
-          <Text style={{ fontSize: 36, marginBottom: 6 }}>🌟</Text>
-          <Text style={{ color: Colors.text, fontSize: 28, fontWeight: "800" }}>{headerTitle}</Text>
-          <Text style={{ color: Colors.tint, fontSize: 14, marginTop: 4 }}>
-            {(star.constellation ?? "—") + " Constellation"}
-          </Text>
-        </View>
+        <StarHeader 
+          title={headerTitle}
+          constellation={star.constellation ?? "—"}
+        />
 
         {uiStar && <StarInfoCard star={uiStar} isOwned={isOwned} />}
 
-        {isOwned ? (
-          <StoryCard
-            title={`🌟 The Story of ${star.displayName ?? star.baseName}${
-              star.displayName ? ` (formerly ${star.baseName})` : ""
-            }`}
-            body={star?.story?.trim() ? (star.story as string) : story}
-            footer={
-              <View style={{ gap: 12 }}>
-                <PrimaryButton
-                  text="Locate in Sky"
-                  onPress={() => router.push({ pathname: "/(tabs)/overlay/overlay", params: { starId: star._id } })}
-                />
-                <PrimaryButton
-                  text="Edit Star"
-                  onPress={() => {
-                    setNewName(star.displayName ?? "");
-                    setNewStory(star.story ?? "");
-                    setEditOpen(true);
-                  }}
-                />
-               <PrimaryButton
-                  text="View Certificate"
-                  onPress={() =>
-                    openCertificate({
-                      starId: star._id,
-                      style: "cosmic",
-                      recipientEmail: "",
-                      message: star.story || "",       
-                    })
-                  }
-                />
-              </View>
-            }
-          />
-        ) : (
-          <SectionCard style={{ gap: 12, marginTop: 8,marginleft:8,marginRight:8 }}>
-            <PrimaryButton text="Add To cart" onPress={handleAddToGift} />
-            <PrimaryButton text="Send As Gift" onPress={handleAddToGift} />
-            <PrimaryButton text="Check Similar Stars" variant="secondary" onPress={() => router.push("/(tabs)/Stars")} />
-          </SectionCard>
-        )}
+        <StarActions
+          isOwned={isOwned}
+          star={star}
+          story={story}
+          onEditStar={handleEditStar}
+          onViewCertificate={handleViewCertificate}
+          onLocateInSky={handleLocateInSky}
+          onAddToGift={handleAddToGift}
+        />
       </ScrollView>
 
-      <Modal visible={editOpen} animationType="slide" transparent>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: 20 }}>
-          <SectionCard style={{ padding: 16, gap: 12 }}>
-            <Text style={{ color: Colors.text, fontSize: 20, fontWeight: "700" }}>Edit Your Star</Text>
-            <LabeledInput label="Name" value={newName} onChangeText={setNewName} placeholder="New display name" autoCapitalize="words" />
-            <LabeledInput
-              label="Story"
-              value={newStory}
-              onChangeText={setNewStory}
-              placeholder="Write your star’s story"
-              multiline
-              style={{ marginTop: 8 }}
-            />
-            <View style={{ flexDirection: "row", gap: 12, marginTop: 8 }}>
-              <PrimaryButton
-                text={saving ? "Saving..." : "Save"}
-                onPress={async () => {
-                  if (!star) return;
-                  try {
-                    setSaving(true);
-                    const patch: any = {};
-                    patch.displayName = newName.trim();
-                    patch.story = newStory;
-                    const updated = await StarsAPI.update(star._id, patch);
-                    const doc: StarDoc = (updated?.data ?? updated) as any;
-                    setStar(doc);
-                    setEditOpen(false);
-                  } catch (e: any) {
-                    Alert.alert("Update failed", e?.response?.data?.message ?? e?.message ?? "Please try again");
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-              />
-              <PrimaryButton text="Cancel" variant="secondary" onPress={() => setEditOpen(false)} />
-            </View>
-          </SectionCard>
-        </View>
-      </Modal>
+      <EditStarModal
+        visible={editOpen}
+        star={star}
+        onClose={() => setEditOpen(false)}
+        onSave={handleUpdateStar}
+      />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  center: { justifyContent: "center", alignItems: "center" },
-  scrollPad: { paddingHorizontal: 20, gap: 16 },
-  error: { color: Colors.onPrimary, fontSize: 16, textAlign: "center" },
-});
