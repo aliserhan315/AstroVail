@@ -1,5 +1,4 @@
 import api from "@/lib/api";
-import * as FileSystem from "expo-file-system";
 
 export const AuthAPI = {
   async register(payload: any) { const { data } = await api.post("/auth/register", payload); return data.data; },
@@ -51,24 +50,61 @@ export const OverlayAPI = {
   async analyze(
     file: { uri: string; name?: string; type?: string },
     userStarId: string,
-    format: "json" | "png" | "png-base64" = "json"
+    format: "json" | "png" = "json"
   ) {
-    const base64 = await FileSystem.readAsStringAsync(file.uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    const mime = file.type || "image/jpeg";
-    const payload = { userStarId, format, imageBase64: `data:${mime};base64,${base64}` };
+    const toBase64 = async (uri: string) => {
+      try {
+        const Manipulator: any = await import("expo-image-manipulator");
+        if (Manipulator?.manipulateAsync && Manipulator?.SaveFormat) {
+          const maxDim = 1600;
+          const result = await Manipulator.manipulateAsync(
+            uri,
+            [{ resize: { width: maxDim } }],
+            { compress: 0.9, format: Manipulator.SaveFormat.JPEG, base64: true }
+          );
+          if (result?.base64) return String(result.base64);
+        }
+      } catch {}
+      try {
+        const FileSystem: any = await import("expo-file-system");
+        if (FileSystem?.readAsStringAsync && FileSystem?.EncodingType?.Base64) {
+          return await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+        }
+      } catch {}
+      const resp = await fetch(uri);
+      const blob = await resp.blob();
+      const reader = new FileReader();
+      return await new Promise<string>((resolve, reject) => {
+        reader.onerror = () => reject(reader.error);
+        reader.onloadend = () => {
+          const s = String(reader.result || "");
+          const b64 = s.includes(",") ? s.split(",")[1] : s;
+          resolve(b64);
+        };
+        reader.readAsDataURL(blob);
+      });
+    };
 
-    if (format === "png-base64") {
-      const res = await api.post("/overlay", payload, { timeout: 60000 });
-      return res.data.data.pngDataUrl as string;
-    }
+    const base64 = await toBase64(file.uri);
+    const mime = file.type || "image/jpeg";
+    const imageBase64 = `data:${mime};base64,${base64}`;
+    const payload = { imageBase64, userStarId, format } as const;
 
     if (format === "png") {
-      const res = await api.post("/overlay", payload, { responseType: "arraybuffer", timeout: 60000 });
-      const b64 = global.Buffer ? global.Buffer.from(res.data, "binary").toString("base64") : "";
-      return `data:image/png;base64,${b64}`;
+      const url = `${api.defaults.baseURL}/overlay`;
+      const auth = (api.defaults.headers?.common as any)?.Authorization;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(auth ? { Authorization: auth } : {}) },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) { const text = await res.text(); throw new Error(text || `HTTP ${res.status}`); }
+      const blob = await res.blob();
+      const reader = new FileReader();
+      const out64 = await new Promise<string>((ok, err) => { reader.onerror = () => err(reader.error); reader.onloadend = () => ok(String(reader.result).split(",")[1] || ""); reader.readAsDataURL(blob); });
+      return `data:image/png;base64,${out64}`;
     }
+
     const res = await api.post("/overlay", payload, { timeout: 60000 });
     return res.data.data;
   },
