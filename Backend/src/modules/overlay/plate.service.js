@@ -15,7 +15,6 @@ export async function solveWithAstrometry(buffer) {
   const { data: login } = await client.post(`/login`, { apikey: process.env.ASTROMETRY_KEY });
   if (!login?.session) throw new Error("Astrometry login failed (no session)");
 
-  // optional hints
   let hints = {};
   if (process.env.ASTROMETRY_HINTS) { try { hints = JSON.parse(process.env.ASTROMETRY_HINTS); } catch {} }
 
