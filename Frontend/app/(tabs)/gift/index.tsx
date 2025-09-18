@@ -58,6 +58,11 @@ export default function GiftScreen() {
     const s = items?.[0]?.certificateStyle as CertificateStyle | undefined;
     return s || CertificateStyle.Classic;
   }, [items]);
+  const activePill = {
+    borderColor: "#9ddcff",
+    backgroundColor: "rgba(157, 220, 255, 0.18)",
+  } as const;
+  const activeText = { color: "#9ddcff" } as const;
 
   const setStyle = (style: CertificateStyle) => {
     items.forEach((it) =>
@@ -280,14 +285,23 @@ export default function GiftScreen() {
           )}
           <Text style={styles.sectionLabel}>Certificate style:</Text>
           <View style={styles.pillsRow}>
-            <Pressable onPress={() => setStyle(CertificateStyle.Classic)} style={styles.pill}>
-              <Text style={styles.pillText}>Classic</Text>
+            <Pressable
+              onPress={() => setStyle(CertificateStyle.Classic)}
+              style={[styles.pill, selectedStyle === CertificateStyle.Classic && activePill]}
+            >
+              <Text style={[styles.pillText, selectedStyle === CertificateStyle.Classic && activeText]}>Classic</Text>
             </Pressable>
-            <Pressable onPress={() => setStyle(CertificateStyle.Modern)} style={styles.pill}>
-              <Text style={styles.pillText}>Modern</Text>
+            <Pressable
+              onPress={() => setStyle(CertificateStyle.Modern)}
+              style={[styles.pill, selectedStyle === CertificateStyle.Modern && activePill]}
+            >
+              <Text style={[styles.pillText, selectedStyle === CertificateStyle.Modern && activeText]}>Modern</Text>
             </Pressable>
-            <Pressable onPress={() => setStyle(CertificateStyle.Cosmic)} style={styles.pill}>
-              <Text style={styles.pillText}>Cosmic</Text>
+            <Pressable
+              onPress={() => setStyle(CertificateStyle.Cosmic)}
+              style={[styles.pill, selectedStyle === CertificateStyle.Cosmic && activePill]}
+            >
+              <Text style={[styles.pillText, selectedStyle === CertificateStyle.Cosmic && activeText]}>Cosmic</Text>
             </Pressable>
           </View>
           <Button
