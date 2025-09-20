@@ -32,7 +32,9 @@ export const MeAPI = {
   updateDevice(payload: any) { return api.patch("/me/device", payload).then((r) => r.data.data); },
 };
 
-export const AIAPI = { certificateMessage(payload: any) { return api.post("/ai/certificate-message", payload).then((r) => r.data.data); } };
+export const AIAPI = { 
+  certificateMessage(payload: any) { return api.post("/ai/certificate-message", payload).then((r) => r.data.data); } 
+};
 
 export const CartAPI = {
   get() { return api.get("/cart").then((r) => r.data.data); },
@@ -104,6 +106,52 @@ export const OverlayAPI = {
       const out64 = await new Promise<string>((ok, err) => { reader.onerror = () => err(reader.error); reader.onloadend = () => ok(String(reader.result).split(",")[1] || ""); reader.readAsDataURL(blob); });
       return `data:image/png;base64,${out64}`;
     }
+
+    const res = await api.post("/overlay", payload, { timeout: 60000 });
+    return res.data.data;
+  },
+
+  async analyzeStarDetection(
+    file: { uri: string; name?: string; type?: string },
+    userStarId: string
+  ) {
+    const toBase64 = async (uri: string) => {
+      try {
+        const Manipulator: any = await import("expo-image-manipulator");
+        if (Manipulator?.manipulateAsync && Manipulator?.SaveFormat) {
+          const maxDim = 1600;
+          const result = await Manipulator.manipulateAsync(
+            uri,
+            [{ resize: { width: maxDim } }],
+            { compress: 0.9, format: Manipulator.SaveFormat.JPEG, base64: true }
+          );
+          if (result?.base64) return String(result.base64);
+        }
+      } catch {}
+      try {
+        const FileSystem: any = await import("expo-file-system");
+        if (FileSystem?.readAsStringAsync && FileSystem?.EncodingType?.Base64) {
+          return await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+        }
+      } catch {}
+      const resp = await fetch(uri);
+      const blob = await resp.blob();
+      const reader = new FileReader();
+      return await new Promise<string>((resolve, reject) => {
+        reader.onerror = () => reject(reader.error);
+        reader.onloadend = () => {
+          const s = String(reader.result || "");
+          const b64 = s.includes(",") ? s.split(",")[1] : s;
+          resolve(b64);
+        };
+        reader.readAsDataURL(blob);
+      });
+    };
+
+    const base64 = await toBase64(file.uri);
+    const mime = file.type || "image/jpeg";
+    const imageBase64 = `data:${mime};base64,${base64}`;
+    const payload = { imageBase64, userStarId };
 
     const res = await api.post("/overlay", payload, { timeout: 60000 });
     return res.data.data;
