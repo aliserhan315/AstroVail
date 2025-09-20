@@ -115,8 +115,8 @@ export default function LiveFinder() {
     const altDiffDeg = Math.abs(altDiff * RAD);
     const totalDistanceDeg = angularDistance * RAD;
 
-    if (totalDistanceDeg < 1) return "🎯 Perfect! Star should be visible in viewfinder!";
-    if (totalDistanceDeg < 3) return "🔍 Very close! Look carefully for the star marker.";
+    if (totalDistanceDeg < 1) return " Perfect! Star should be visible in viewfinder!";
+    if (totalDistanceDeg < 3) return "Very close! Look carefully for the star marker.";
 
     let primary = "";
     let secondary = "";
