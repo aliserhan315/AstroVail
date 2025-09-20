@@ -6,6 +6,7 @@ export const wrapPi = (a: number) => {
   while (a < -Math.PI) a += 2 * Math.PI;
   return a;
 };
+
 export const wrap2pi = (a: number) => {
   while (a >= 2 * Math.PI) a -= 2 * Math.PI;
   while (a < 0) a += 2 * Math.PI;
@@ -44,12 +45,12 @@ export function radecToAzAlt(
   const H = wrapPi(lst - ra);
   const lat = latDeg * DEG;
 
-  const sinAlt =
-    Math.sin(dec) * Math.sin(lat) +
-    Math.cos(dec) * Math.cos(lat) * Math.cos(H);
+  const sinAlt = Math.sin(dec) * Math.sin(lat) + Math.cos(dec) * Math.cos(lat) * Math.cos(H);
   const alt = Math.asin(Math.max(-1, Math.min(1, sinAlt)));
+
   const y = -Math.sin(H) * Math.cos(dec);
   const x = Math.sin(dec) - Math.sin(lat) * sinAlt;
-  const az = wrap2pi(Math.atan2(y, x)); 
+  const az = wrap2pi(Math.atan2(y, x));
+
   return { az, alt };
 }
