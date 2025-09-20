@@ -11,17 +11,14 @@ export async function starGuidanceTips(input) {
 
   const { inFrame, angleDeg, distanceFOV, center, target } = input;
 
-  const sys = `You generate short, practical camera move instructions for astrophotography.
-Output JSON with keys: "short","steps". "short" ≤ 110 chars. "steps" = array of 2-5 bullet steps.
-Avoid fluff. Use human compass words (up/down/left/right).`;
+  const sys = `You are an attendent that check if the user send the picture of his star if that image was of his star you send back a responce saying your star is in your screen or no its is not then telll him if its in .`;
 
   const user = [
     `Frame center RA=${center.ra.toFixed(6)}, Dec=${center.dec.toFixed(6)}.`,
     `Target ${target.name || "star"} RA=${target.ra.toFixed(6)}, Dec=${target.dec.toFixed(6)}.`,
-    typeof target.mag === "number" ? `Magnitude≈${target.mag.toFixed(1)}.` : "",
     inFrame
-      ? `The target is inside the frame. Provide micro-adjustment guidance.`
-      : `The target is outside the frame at approx angle=${Math.round(angleDeg ?? 0)}°, distance≈${(distanceFOV ?? 0).toFixed(1)} FOV radii. Provide move direction and how far.`,
+      ? `The target is inside the frame`
+      : `The target is outside the frame check our live finder `,
   ].join(" ");
 
   const resp = await model.generateContent([
