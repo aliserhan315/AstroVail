@@ -29,7 +29,7 @@ export default function Header({
           style={styles.iconBtn}
           onPress={onLogoutPress}
         >
-          <Ionicons name="power-outline" size={20} color="#FFFFFF" />
+          <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </View>

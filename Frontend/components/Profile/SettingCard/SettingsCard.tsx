@@ -45,9 +45,9 @@ export default function SettingsCard({
         style={{ paddingVertical: 12 }}
         android_ripple={{ color: "rgba(255,255,255,0.1)" } as any}
       >
-        <Text style={{ color: Colors.text, fontSize: 16 }}>Check your certificate</Text>
+        <Text style={{ color: Colors.text, fontSize: 16 }}>Certificate Type</Text>
         <Text style={{ color: "#B6B6B6", fontSize: 12, marginTop: 4 }}>
-          Enter and check your star certificates
+          Choose your certificate style
         </Text>
       </Pressable>
     </SectionCard>

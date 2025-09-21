@@ -1,5 +1,5 @@
 import express from "express";
-import { CheckoutService } from "./checkout.service.1";
+import { CheckoutService } from "./checkout.service.1.js";
 import { getStripe } from "../../lib/stripe.js";
 
 

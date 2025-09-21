@@ -28,6 +28,8 @@ jobs:
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY_TEST }}
       STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET_TEST }}
+      CHAIN_RPC_URL: ${{ secrets.CHAIN_RPC_URL || 'http://127.0.0.1:8545' }}
+      OWNERSHIP_CONTRACT_ADDRESS: ${{ secrets.OWNERSHIP_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000' }}
       CI: true
     steps:
       - name: Checkout

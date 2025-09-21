@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View } from "react-native";
 import { Slot, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import TabBar from "../../components/nav/TabBar";
+import TabBar from "../../components/nav/TabBar/TabBar";
 
 const BAR_HEIGHT = 77;
 
