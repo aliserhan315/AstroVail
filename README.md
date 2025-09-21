@@ -56,17 +56,17 @@
 | --- | --- | --- |
 | ![Home](./readme/demo/home.jpg) | ![Events](./readme/demo/Events.jpg) | ![Notifications](./readme/demo/Notification.jpg) |
 
-| [Overlay](Frontend/app/(tabs)/overlay/overlay.tsx) | [Star Details](Frontend/app/(tabs)/star/[starId].tsx) (video) | [Gift](Frontend/app/(tabs)/gift/index.tsx) (video) |
+| [Overlay](Frontend/app/(tabs)/overlay/overlay.tsx) | [Star Details](Frontend/app/(tabs)/star/[starId].tsx) (gif-like) | [Gift](Frontend/app/(tabs)/gift/index.tsx) (gif-like) |
 | --- | --- | --- |
-| ![Overlay](./readme/demo/Overlay.jpg) | <video src="./readme/demo/Star.mp4" controls width="280"></video> | <video src="./readme/demo/Gift.mp4" controls width="280"></video> |
+| ![Overlay](./readme/demo/Overlay.jpg) | <video src="./readme/demo/Star.mp4" autoplay loop muted playsinline width="280"></video> | <video src="./readme/demo/Gift.mp4" autoplay loop muted playsinline width="280"></video> |
 
-| [AI Gift](Frontend/components/gift/GiftAIQuickModal/GiftAIQuickModal.tsx) (video) | [Checkout](Frontend/app/checkout/index.tsx) (video) | [Profile](Frontend/app/(tabs)/profile/index.tsx) (video) |
+| [AI Gift](Frontend/components/gift/GiftAIQuickModal/GiftAIQuickModal.tsx) (gif-like) | [Checkout](Frontend/app/checkout/index.tsx) (gif-like) | [Profile](Frontend/app/(tabs)/profile/index.tsx) (gif-like) |
 | --- | --- | --- |
-| <video src="./readme/demo/Aigift.mp4" controls width="280"></video> | <video src="./readme/demo/buying.mp4" controls width="280"></video> | <video src="./readme/demo/Profile.mp4" controls width="280"></video> |
+| <video src="./readme/demo/Aigift.mp4" autoplay loop muted playsinline width="280"></video> | <video src="./readme/demo/buying.mp4" autoplay loop muted playsinline width="280"></video> | <video src="./readme/demo/Profile.mp4" autoplay loop muted playsinline width="280"></video> |
 
-| [Login](Frontend/app/(auth)/login.tsx) | [Register](Frontend/app/(auth)/register.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) (video) |
+| [Login](Frontend/app/(auth)/login.tsx) | [Register](Frontend/app/(auth)/register.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) (gif-like) |
 | --- | --- | --- |
-| ![Login](./readme/demo/Sign.jpg) | ![Register](./readme/demo/Register.jpg) | <video src="./readme/demo/skyfinder.mp4" controls width="280"></video> |
+| ![Login](./readme/demo/Sign.jpg) | ![Register](./readme/demo/Register.jpg) | <video src="./readme/demo/skyfinder.mp4" autoplay loop muted playsinline width="280"></video> |
 
 <br>
 
@@ -106,12 +106,20 @@
 - Express + MongoDB backend with JWT auth
 - On-chain integration via smart contracts and service wrappers
 
+| Services Overview |
+| --- |
+| ![Services](./readme/Service.png) |
+
 ### Validation
 - Schema validation on inputs; auth/session checks
 - Rate limiting and webhook verifications where applicable
 
 ### Testing
 - Unit and integration tests for core modules (see `Backend/tests`)
+
+| Testing Overview |
+| --- |
+| ![Testing](./readme/Testing.png) |
 
 <br><br>
 
