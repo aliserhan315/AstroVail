@@ -42,13 +42,7 @@ export const StarService = {
         Star.countDocuments(randomFilter),
       ]);
 
-      return {
-        items,
-        page: 1,
-        limit: size,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / size)),
-      };
+      return {  items,page: 1, limit: size, total,  totalPages: Math.max(1, Math.ceil(total / size)),};
     }
 
     const lim = Math.min(100, toInt(limit, 25)); 
