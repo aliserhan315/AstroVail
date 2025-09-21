@@ -9,7 +9,6 @@ import ProfileHeader from "@/components/Profile/ProfileHeader/ProfileHeader";
 import StatsCard from "@/components/Profile/StatsCard/StatsCard";
 import SettingsCard from "@/components/Profile/SettingCard/SettingsCard";
 import { MeAPI, StarsAPI } from "@/lib/endpoint";
-import { useRouter } from "expo-router";
 import { useAppDispatch } from "@/state/hooks";
 import { setUser } from "@/state/slices/authSlice";
 import {styles} from "./ProfileScreen.styles";
@@ -25,7 +24,6 @@ function firstNameFromDisplay(displayName?: string | null) {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const dispatch = useAppDispatch();
 
   const [me, setMe] = useState<Me | null>(null);
