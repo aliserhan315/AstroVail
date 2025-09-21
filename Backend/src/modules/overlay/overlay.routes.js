@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { postOverlay } from "./overlay.controller.js";
+import { postStarDetection } from "./overlay.controller.js";
 
 const router = Router();
-router.post("/", postOverlay);
+router.post("/detect", postStarDetection);
 
 export default router;

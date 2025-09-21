@@ -1,7 +1,7 @@
 import "dotenv/config.js";
 import mongoose from "mongoose";
 import cron from "node-cron";
-import { ReminderService } from "../src/modules/reminder/reminder.service.js";
+import { ReminderService } from "../src/modules/notification/reminder.service.js";
 
 const SPEC = process.env.CRON_SEND_NOTIFS || "*/10 * * * *";
 

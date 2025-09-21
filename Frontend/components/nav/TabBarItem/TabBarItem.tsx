@@ -1,5 +1,6 @@
 import React, { JSX } from "react";
 import { Pressable, Text } from "react-native";
+import { styles } from "./TabBarItem.style";
 
 type TabBarItemProps = {
   label: string;
@@ -20,27 +21,18 @@ export default function TabBarItem({
   activeColor,
   inactiveColor,
 }: TabBarItemProps) {
+  const tint = active ? activeColor : inactiveColor;
+
   return (
     <Pressable
       onPress={onPress}
-      style={{
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: active ? activeBg : "transparent",
-      }}
+      style={[
+        styles.item,
+        active && { backgroundColor: activeBg },
+      ]}
     >
-      <Icon color={active ? activeColor : inactiveColor} />
-      <Text
-        style={{
-          fontSize: 10,
-          color: active ? activeColor : inactiveColor,
-          fontWeight: active ? "700" : "500",
-          marginTop: 4,
-        }}
-      >
+      <Icon color={tint} />
+      <Text style={[styles.label, { color: tint, fontWeight: active ? "700" : "500" }]}>
         {label}
       </Text>
     </Pressable>

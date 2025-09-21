@@ -7,25 +7,29 @@ export const swaggerSpec = {
   info: {
     title: "AstroVail API",
     version: "1.0.0",
-    description: "API documentation for AstroVail backend",
+    description: "API documentation for AstroVail backend - A platform for digital star ownership and astronomy events",
+    contact: {
+      name: "AstroVail API Support",
+      email: "support@astrovail.com"
+    }
   },
   servers: [
     { url: `${BASE_URL}/api`, description: (isProd ? "Production" : "Local") + " API base" },
     { url: `${BASE_URL}`, description: (isProd ? "Production" : "Local") + " root (webhooks, etc.)" },
   ],
   tags: [
-    { name: "Auth", description: "Authentication and session" },
-    { name: "Stars", description: "Public and owned stars" },
+    { name: "Auth", description: "Authentication and session management" },
+    { name: "Stars", description: "Public and owned stars management" },
     { name: "Events", description: "Astronomy events and reminders" },
-    { name: "Notifications", description: "User notifications" },
-    { name: "Checkout", description: "Checkout and orders" },
-    { name: "Cart", description: "Shopping cart" },
-    { name: "User", description: "Current user profile" },
+    { name: "Notifications", description: "User notifications system" },
+    { name: "Checkout", description: "Checkout and order processing" },
+    { name: "Cart", description: "Shopping cart management" },
+    { name: "User", description: "Current user profile management" },
     { name: "Overlay", description: "Astrometry overlay processing" },
     { name: "Ownership", description: "On-chain ownership utilities" },
     { name: "Certificates", description: "Certificate generation & actions" },
-    { name: "AI", description: "AI helpers" },
-    { name: "Webhooks", description: "Inbound webhooks" },
+    { name: "AI", description: "AI-powered helpers and content generation" },
+    { name: "Webhooks", description: "Inbound webhooks from external services" },
   ],
   components: {
     securitySchemes: {
@@ -33,344 +37,679 @@ export const swaggerSpec = {
         type: "http",
         scheme: "bearer",
         bearerFormat: "JWT",
+        description: "JWT token for authentication. Include 'Bearer ' prefix."
       },
     },
     schemas: {
-        Success: {
-          type: "object",
-          properties: {
-            success: { type: "boolean", example: true },
-            message: { type: "string", example: "OK" },
-            data: { type: "object" },
-          },
+      Success: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: true },
+          message: { type: "string", example: "Operation completed successfully" },
+          data: { type: "object", description: "Response data varies by endpoint" },
         },
-        Error: {
-          type: "object",
-          properties: {
-            success: { type: "boolean", example: false },
-            message: { type: "string" },
-            details: { type: "object", nullable: true },
-          },
-        },
-        Star: {
-          type: "object",
-          properties: {
-            _id: { type: "string" },
-            catalogId: { type: "string" },
-            baseName: { type: "string" },
-            displayName: { type: "string", nullable: true },
-            story: { type: "string", nullable: true },
-            ra: { type: "number", nullable: true },
-            dec: { type: "number", nullable: true },
-            magnitude: { type: "number", nullable: true },
-            constellation: { type: "string", nullable: true },
-            nakedEye: { type: "boolean", nullable: true },
-            binocular: { type: "boolean", nullable: true },
-            owner: { type: "string", nullable: true },
-            certificateStyle: { type: "string", enum: ["classic", "modern", "cosmic"] },
-            createdAt: { type: "string", format: "date-time", nullable: true },
-            updatedAt: { type: "string", format: "date-time", nullable: true },
-          },
-        },
-        Event: {
-          type: "object",
-          properties: {
-            _id: { type: "string" },
-            source: { type: "string" },
-            externalId: { type: "string" },
-            title: { type: "string" },
-            description: { type: "string", nullable: true },
-            startTime: { type: "string", format: "date-time" },
-            endTime: { type: "string", format: "date-time", nullable: true },
-            createdAt: { type: "string", format: "date-time", nullable: true },
-          },
-        },
-        User: {
-          type: "object",
-          properties: {
-            _id: { type: "string" },
-            email: { type: "string", format: "email" },
-            firstName: { type: "string", nullable: true },
-            lastName: { type: "string", nullable: true },
-            displayName: { type: "string", nullable: true },
-            avatarUrl: { type: "string", nullable: true },
-            tz: { type: "string", nullable: true },
-            createdAt: { type: "string", format: "date-time", nullable: true },
-            updatedAt: { type: "string", format: "date-time", nullable: true },
-          },
-        },
-        AuthPayload: {
-          type: "object",
-          properties: {
-            user: { $ref: "#/components/schemas/User" },
-            accessToken: { type: "string" },
-            refreshToken: { type: "string" },
-          },
-        },
-        Notification: {
-          type: "object",
-          properties: {
-            _id: { type: "string" },
-            type: { type: "string", enum: ["event", "star"] },
-            title: { type: "string" },
-            body: { type: "string" },
-            day: { type: "string" },
-            readAt: { type: "string", format: "date-time", nullable: true },
-            createdAt: { type: "string", format: "date-time", nullable: true },
-          },
-        },
-        CartItem: {
-          type: "object",
-          properties: {
-            starId: { type: "string" },
-            qty: { type: "integer" },
-            priceCents: { type: "integer" },
-            recipientEmail: { type: "string", nullable: true },
-            message: { type: "string", nullable: true },
-            certificateStyle: { type: "string", enum: ["classic", "modern", "cosmic"] },
-          },
-        },
-        Cart: {
-          type: "object",
-          properties: {
-            _id: { type: "string" },
-            items: { type: "array", items: { $ref: "#/components/schemas/CartItem" } },
-            createdAt: { type: "string", format: "date-time", nullable: true },
-            updatedAt: { type: "string", format: "date-time", nullable: true },
-          },
-        },
-        OverlayJson: {
-          type: "object",
-          properties: {
-            solved: { type: "boolean" },
-            image: {
-              type: "object",
-              properties: { width: { type: "integer" }, height: { type: "integer" } },
-            },
-            inFrame: { type: "boolean" },
-            center: {
-              type: "object",
-              properties: { ra: { type: "number" }, dec: { type: "number" } },
-            },
-            markers: { type: "array", items: { type: "object" } },
-            guidance: { type: "object" },
-            ai: { type: "object", nullable: true },
-          },
-        },
-        OwnershipRecord: {
-          type: "object",
-          properties: {
-            tokenId: { type: "string" },
-            starId: { type: "string" },
-            owner: { type: "string" },
-          },
-        },
-        AICertificateMessagePayload: {
-          type: "object",
-          properties: {
-            recipientName: { type: "string" },
-            buyerName: { type: "string" },
-            star: {
-              type: "object",
-              properties: {
-                baseName: { type: "string", nullable: true },
-                displayName: { type: "string", nullable: true },
-                constellation: { type: "string", nullable: true },
-                ra: { type: "number", nullable: true },
-                dec: { type: "number", nullable: true },
-                magnitude: { type: "number", nullable: true },
-              },
-            },
-            style: { type: "string", enum: ["classic", "modern", "cosmic"] },
-            tone: { type: "string", enum: ["short","friendly","romantic","fun","formal","inspirational"] },
-            occasion: { type: "string" },
-            length: { type: "string", enum: ["short","medium","long"] },
-            language: { type: "string", enum: ["en","ar"] },
-            eventDate: { type: "string" },
-            userNotes: { type: "string" },
-            includeAstronomyFacts: { type: "boolean" },
-            includeConstellationMyth: { type: "boolean" },
-            maxChars: { type: "integer" },
-            count: { type: "integer" },
-          },
-          required: ["style"],
-        },
+        required: ["success"]
       },
+      Error: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: false },
+          message: { type: "string", example: "An error occurred" },
+          details: { type: "object", nullable: true, description: "Additional error details" },
+        },
+        required: ["success", "message"]
+      },
+      Star: {
+        type: "object",
+        properties: {
+          _id: { type: "string", description: "Unique star identifier" },
+          catalogId: { type: "string", description: "Catalog reference ID" },
+          baseName: { type: "string", description: "Original catalog name" },
+          displayName: { type: "string", nullable: true, description: "Custom display name" },
+          story: { type: "string", nullable: true, maxLength: 5000, description: "Personal story or dedication" },
+          ra: { type: "number", nullable: true, description: "Right ascension coordinate" },
+          dec: { type: "number", nullable: true, description: "Declination coordinate" },
+          magnitude: { type: "number", nullable: true, description: "Brightness magnitude" },
+          constellation: { type: "string", nullable: true, description: "Constellation name" },
+          nakedEye: { type: "boolean", nullable: true, description: "Visible to naked eye" },
+          binocular: { type: "boolean", nullable: true, description: "Visible with binoculars" },
+          owner: { type: "string", nullable: true, description: "Owner user ID" },
+          pendingOwnerEmail: { type: "string", nullable: true, description: "Email of pending gift recipient" },
+          isGifted: { type: "boolean", description: "Whether this star was gifted" },
+          certificateStyle: { type: "string", enum: ["classic", "modern", "cosmic"], description: "Certificate design style" },
+          createdAt: { type: "string", format: "date-time", nullable: true },
+          updatedAt: { type: "string", format: "date-time", nullable: true },
+        },
+        required: ["_id", "certificateStyle"]
+      },
+      CreateStarRequest: {
+        type: "object",
+        properties: {
+          baseName: { type: "string", description: "Required if displayName not provided" },
+          displayName: { type: "string", description: "Required if baseName not provided" },
+          ra: { type: "number", description: "Right ascension" },
+          dec: { type: "number", description: "Declination" },
+          magnitude: { type: "number", description: "Brightness magnitude" },
+          constellation: { type: "string", description: "Constellation name" },
+          certificateStyle: { type: "string", enum: ["classic", "modern", "cosmic"], default: "classic" },
+          catalogId: { type: "string", description: "Catalog reference" },
+          nakedEye: { type: "boolean", description: "Visible to naked eye" },
+          binocular: { type: "boolean", description: "Visible with binoculars" },
+          isGifted: { type: "boolean", description: "Is this a gift" },
+          recipientEmail: { type: "string", format: "email", description: "Gift recipient email" }
+        }
+      },
+      UpdateStarRequest: {
+        type: "object",
+        properties: {
+          displayName: { type: "string", maxLength: 120, description: "Custom display name" },
+          story: { type: "string", maxLength: 5000, description: "Personal story or dedication" },
+          certificateStyle: { type: "string", enum: ["classic", "modern", "cosmic"], description: "Certificate style" }
+        }
+      },
+      Event: {
+        type: "object",
+        properties: {
+          _id: { type: "string" },
+          source: { type: "string", description: "Event source system" },
+          externalId: { type: "string", description: "External system ID" },
+          title: { type: "string", description: "Event title" },
+          description: { type: "string", nullable: true, description: "Event description" },
+          startTime: { type: "string", format: "date-time", description: "Event start time" },
+          endTime: { type: "string", format: "date-time", nullable: true, description: "Event end time" },
+          createdAt: { type: "string", format: "date-time", nullable: true },
+        },
+        required: ["_id", "source", "title", "startTime"]
+      },
+      User: {
+        type: "object",
+        properties: {
+          _id: { type: "string" },
+          email: { type: "string", format: "email" },
+          firstName: { type: "string", nullable: true },
+          lastName: { type: "string", nullable: true },
+          displayName: { type: "string", nullable: true },
+          avatarUrl: { type: "string", nullable: true, format: "uri" },
+          tz: { type: "string", nullable: true, description: "IANA timezone" },
+          location: {
+            type: "object",
+            nullable: true,
+            properties: {
+              lat: { type: "number", description: "Latitude" },
+              lon: { type: "number", description: "Longitude" },
+              accuracy: { type: "number", description: "Location accuracy in meters" },
+              updatedAt: { type: "string", format: "date-time" }
+            }
+          },
+          createdAt: { type: "string", format: "date-time", nullable: true },
+          updatedAt: { type: "string", format: "date-time", nullable: true },
+        },
+        required: ["_id", "email"]
+      },
+      AuthPayload: {
+        type: "object",
+        properties: {
+          user: { $ref: "#/components/schemas/User" },
+          accessToken: { type: "string", description: "JWT access token (15min expiry)" },
+          refreshToken: { type: "string", description: "Refresh token (30 days expiry)" },
+        },
+        required: ["user", "accessToken", "refreshToken"]
+      },
+      RegisterRequest: {
+        type: "object",
+        required: ["email", "password"],
+        properties: {
+          email: { type: "string", format: "email" },
+          password: { type: "string", minLength: 6, description: "Minimum 6 characters" },
+          displayName: { type: "string", description: "Display name" },
+          firstName: { type: "string", description: "First name" },
+          lastName: { type: "string", description: "Last name" },
+          tz: { type: "string", description: "IANA timezone" },
+          location: {
+            type: "object",
+            properties: {
+              lat: { type: "number", minimum: -90, maximum: 90 },
+              lon: { type: "number", minimum: -180, maximum: 180 },
+              accuracy: { type: "number", minimum: 0 }
+            }
+          }
+        }
+      },
+      LoginRequest: {
+        type: "object",
+        required: ["email", "password"],
+        properties: {
+          email: { type: "string", format: "email" },
+          password: { type: "string" },
+          tz: { type: "string", description: "IANA timezone" }
+        }
+      },
+      Notification: {
+        type: "object",
+        properties: {
+          _id: { type: "string" },
+          type: { type: "string", enum: ["event", "star"] },
+          title: { type: "string" },
+          body: { type: "string" },
+          day: { type: "string", description: "Date in YYYY-MM-DD format" },
+          readAt: { type: "string", format: "date-time", nullable: true },
+          createdAt: { type: "string", format: "date-time", nullable: true },
+          event: { $ref: "#/components/schemas/Event", nullable: true },
+          star: { $ref: "#/components/schemas/Star", nullable: true }
+        },
+        required: ["_id", "type", "title", "body"]
+      },
+      CartItem: {
+        type: "object",
+        properties: {
+          starId: { type: "string", description: "Reference to star" },
+          qty: { type: "integer", minimum: 1, default: 1 },
+          priceCents: { type: "integer", minimum: 0, description: "Price in cents" },
+          recipientEmail: { type: "string", format: "email", nullable: true, description: "Gift recipient" },
+          message: { type: "string", nullable: true, description: "Gift message" },
+          certificateStyle: { type: "string", enum: ["classic", "modern", "cosmic"], default: "classic" },
+        },
+        required: ["starId", "qty", "priceCents", "certificateStyle"]
+      },
+      Cart: {
+        type: "object",
+        properties: {
+          _id: { type: "string" },
+          items: { type: "array", items: { $ref: "#/components/schemas/CartItem" } },
+          createdAt: { type: "string", format: "date-time", nullable: true },
+          updatedAt: { type: "string", format: "date-time", nullable: true },
+        },
+        required: ["_id", "items"]
+      },
+      AddToCartRequest: {
+        type: "object",
+        required: ["starId"],
+        properties: {
+          starId: { type: "string", description: "Star ID to add to cart" },
+          qty: { type: "integer", minimum: 1, default: 1 },
+          recipientEmail: { type: "string", format: "email", description: "Gift recipient email" },
+          message: { type: "string", description: "Personal message for gift" },
+          certificateStyle: { type: "string", enum: ["classic", "modern", "cosmic"], default: "classic" }
+        }
+      },
+      OverlayJson: {
+        type: "object",
+        properties: {
+          solved: { type: "boolean", description: "Whether astrometry solution was found" },
+          image: {
+            type: "object",
+            properties: { 
+              width: { type: "integer" }, 
+              height: { type: "integer" } 
+            },
+            description: "Image dimensions"
+          },
+          inFrame: { type: "boolean", description: "Whether target star is in frame" },
+          center: {
+            type: "object",
+            properties: { 
+              ra: { type: "number", description: "Right ascension of image center" }, 
+              dec: { type: "number", description: "Declination of image center" } 
+            },
+            description: "Image center coordinates"
+          },
+          markers: { type: "array", items: { type: "object" }, description: "Star markers in image" },
+          guidance: { type: "object", description: "Guidance information for finding target" },
+          ai: { type: "object", nullable: true, description: "AI-generated insights" },
+        },
+        required: ["solved"]
+      },
+      OwnershipRecord: {
+        type: "object",
+        properties: {
+          tokenId: { type: "string", description: "Blockchain token ID" },
+          starId: { type: "string", description: "Associated star ID" },
+          owner: { type: "string", description: "Owner wallet address or email" },
+        },
+        required: ["tokenId", "starId", "owner"]
+      },
+      AICertificateMessagePayload: {
+        type: "object",
+        required: ["style"],
+        properties: {
+          recipientName: { type: "string", description: "Name of certificate recipient" },
+          buyerName: { type: "string", description: "Name of person buying/gifting" },
+          star: {
+            type: "object",
+            properties: {
+              baseName: { type: "string", nullable: true },
+              displayName: { type: "string", nullable: true },
+              constellation: { type: "string", nullable: true },
+              ra: { type: "number", nullable: true },
+              dec: { type: "number", nullable: true },
+              magnitude: { type: "number", nullable: true },
+            },
+            description: "Star information for personalization"
+          },
+          style: { type: "string", enum: ["classic", "modern", "cosmic"], description: "Certificate style" },
+          tone: { type: "string", enum: ["short","friendly","romantic","fun","formal","inspirational"], description: "Message tone" },
+          occasion: { type: "string", description: "Special occasion or reason for gift" },
+          length: { type: "string", enum: ["short","medium","long"], default: "short", description: "Message length preference" },
+          language: { type: "string", enum: ["en","ar"], default: "en", description: "Message language" },
+          eventDate: { type: "string", description: "Important date related to the gift" },
+          userNotes: { type: "string", maxLength: 400, description: "Additional notes from user" },
+          includeAstronomyFacts: { type: "boolean", default: false, description: "Include astronomy facts" },
+          includeConstellationMyth: { type: "boolean", default: false, description: "Include constellation mythology" },
+          maxChars: { type: "integer", minimum: 50, maximum: 2000, default: 280, description: "Maximum character limit" },
+          count: { type: "integer", minimum: 1, maximum: 5, default: 1, description: "Number of message variations" },
+        }
+      },
+      PaginatedStarsResponse: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: true },
+          message: { type: "string", example: "OK" },
+          data: {
+            type: "object",
+            properties: {
+              items: { type: "array", items: { $ref: "#/components/schemas/Star" } },
+              page: { type: "integer", description: "Current page number" },
+              limit: { type: "integer", description: "Items per page" },
+              total: { type: "integer", description: "Total number of items" },
+              totalPages: { type: "integer", description: "Total number of pages" }
+            }
+          }
+        }
+      }
     },
+  },
   
   security: [{ bearerAuth: [] }],
   paths: {
-      "/auth/register": {
-        post: {
-          tags: ["Auth"],
-          summary: "Register a new user",
-          requestBody: {
-            required: true,
-            content: {
-              "application/json": {
+    // AUTH ROUTES
+    "/auth/register": {
+      post: {
+        tags: ["Auth"],
+        summary: "Register a new user",
+        description: "Create a new user account with email and password",
+        security: [], // Public endpoint
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/RegisterRequest" },
+              examples: {
+                basic: {
+                  summary: "Basic registration",
+                  value: {
+                    email: "user@example.com",
+                    password: "securepassword123",
+                    displayName: "John Doe"
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          201: { 
+            description: "User successfully registered",
+            content: { 
+              "application/json": { 
                 schema: {
-                  type: "object",
-                  required: ["email", "password"],
-                  properties: {
-                    email: { type: "string", format: "email" },
-                    password: { type: "string", minLength: 6 },
-                    displayName: { type: "string" },
-                    firstName: { type: "string" },
-                    lastName: { type: "string" },
-                    tz: { type: "string" },
-                    location: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
                       type: "object",
-                      properties: { lat: { type: "number" }, lon: { type: "number" }, accuracy: { type: "number" } },
-                    },
-                  },
-                },
-              },
-            },
+                      properties: {
+                        data: { $ref: "#/components/schemas/AuthPayload" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
           },
-          responses: {
-            201: { description: "Registered", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } },
-            400: { description: "Email already in use", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-          },
-        },
-      },
-      "/auth/login": {
-        post: {
-          tags: ["Auth"],
-          summary: "Login",
-          requestBody: {
-            required: true,
-            content: { "application/json": { schema: { type: "object", required: ["email", "password"], properties: { email: { type: "string", format: "email" }, password: { type: "string" }, tz: { type: "string" } } } } },
-          },
-          responses: {
-            200: { description: "Login successful", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } },
-            401: { description: "Invalid credentials", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+          400: { 
+            description: "Email already in use or validation error",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
           },
         },
       },
-      "/auth/refresh": {
-        post: {
-          tags: ["Auth"],
-          summary: "Refresh access token",
-          requestBody: {
-            required: true,
-            content: { "application/json": { schema: { type: "object", required: ["refreshToken"], properties: { refreshToken: { type: "string" } } } } },
-          },
-          responses: {
-            200: { description: "Refreshed", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } },
-            401: { description: "Invalid refresh token", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-          },
+    },
+    "/auth/login": {
+      post: {
+        tags: ["Auth"],
+        summary: "Login user",
+        description: "Authenticate user with email and password",
+        security: [], // Public endpoint
+        requestBody: {
+          required: true,
+          content: { 
+            "application/json": { 
+              schema: { $ref: "#/components/schemas/LoginRequest" },
+              examples: {
+                basic: {
+                  summary: "Basic login",
+                  value: {
+                    email: "user@example.com",
+                    password: "securepassword123"
+                  }
+                }
+              }
+            }
+          }
         },
-      },
-      "/auth/logout": {
-        post: {
-          tags: ["Auth"],
-          summary: "Logout",
-          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["refreshToken"], properties: { refreshToken: { type: "string" } } } } } },
-          responses: { 200: { description: "Logged out", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } } },
-        },
-      },
-
-      // Stars
-      "/stars": {
-        get: {
-          tags: ["Stars"],
-          summary: "List available stars",
-          parameters: [
-            { in: "query", name: "q", schema: { type: "string" } },
-            { in: "query", name: "page", schema: { type: "integer" } },
-            { in: "query", name: "limit", schema: { type: "integer" } },
-            { in: "query", name: "constellation", schema: { type: "string" } },
-            { in: "query", name: "magnitudeMax", schema: { type: "number" } },
-            { in: "query", name: "nakedEye", schema: { type: "boolean" } },
-            { in: "query", name: "binocular", schema: { type: "boolean" } },
-            { in: "query", name: "sort", schema: { type: "string", enum: ["recent"] } },
-          ],
-          responses: { 200: { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } } },
-        },
-        post: {
-          tags: ["Stars"],
-          summary: "Create star (gift or self)",
-          security: [{ bearerAuth: [] }],
-          requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/Star" } } } },
-          responses: { 201: { description: "Created", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } } },
-        },
-      },
-      "/stars/me/stars": { get: { tags: ["Stars"], security: [{ bearerAuth: [] }], summary: "List my stars", responses: { 200: { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } } } } },
-      "/stars/by-catalog/{catalogId}": { get: { tags: ["Stars"], summary: "Get star by catalog id", parameters: [{ in: "path", name: "catalogId", required: true, schema: { type: "string" } }], responses: { 200: { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } }, 404: { description: "Not found" } } } },
-      "/stars/{id}": {
-        get: { tags: ["Stars"], summary: "Get star", parameters: [{ in: "path", name: "id", required: true, schema: { type: "string" } }], responses: { 200: { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } }, 404: { description: "Not found" } } },
-        patch: { tags: ["Stars"], security: [{ bearerAuth: [] }], summary: "Update star", parameters: [{ in: "path", name: "id", required: true, schema: { type: "string" } }], requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } }, responses: { 200: { description: "Updated", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } }, 403: { description: "Forbidden" }, 404: { description: "Not found" } } },
-        delete: { tags: ["Stars"], security: [{ bearerAuth: [] }], summary: "Delete star", parameters: [{ in: "path", name: "id", required: true, schema: { type: "string" } }], responses: { 200: { description: "Deleted" }, 404: { description: "Not found" } } },
-      },
-
-
-      "/events": { get: { tags: ["Events"], summary: "List events", parameters: [{ in: "query", name: "from", schema: { type: "string" } }, { in: "query", name: "to", schema: { type: "string" } }, { in: "query", name: "q", schema: { type: "string" } }, { in: "query", name: "limit", schema: { type: "integer" } }, { in: "query", name: "includeNEO", schema: { type: "boolean" } }], responses: { 200: { description: "OK" } } } },
-      "/events/{id}": { get: { tags: ["Events"], summary: "Get event", parameters: [{ in: "path", name: "id", required: true, schema: { type: "string" } }], responses: { 200: { description: "OK" }, 404: { description: "Not found" } } } },
-      "/events/{id}/remind": { post: { tags: ["Events"], security: [{ bearerAuth: [] }], summary: "Set reminders for event", parameters: [{ in: "path", name: "id", required: true, schema: { type: "string" } }], responses: { 200: { description: "OK" } } } },
-
-   
-      "/notifications": { get: { tags: ["Notifications"], security: [{ bearerAuth: [] }], summary: "List notifications", responses: { 200: { description: "OK" } } } },
-      "/notifications/{id}/read": { post: { tags: ["Notifications"], security: [{ bearerAuth: [] }], summary: "Mark notification read", parameters: [{ in: "path", name: "id", required: true, schema: { type: "string" } }], responses: { 200: { description: "OK" } } } },
-
-      "/checkout/create": { post: { tags: ["Checkout"], security: [{ bearerAuth: [] }], summary: "Create checkout", responses: { 200: { description: "OK" } } } },
-      "/checkout/finalize": { post: { tags: ["Checkout"], security: [{ bearerAuth: [] }], summary: "Finalize order (test-only)", requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: { orderId: { type: "string" } } } } } }, responses: { 200: { description: "OK" } } } },
-
-      "/cart": { get: { tags: ["Cart"], security: [{ bearerAuth: [] }], summary: "Get my cart", responses: { 200: { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } } } } },
-      "/cart/items": { post: { tags: ["Cart"], security: [{ bearerAuth: [] }], summary: "Add to cart", requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["starId"], properties: { starId: { type: "string" }, qty: { type: "integer", default: 1 }, recipientEmail: { type: "string" }, message: { type: "string" }, certificateStyle: { type: "string", enum: ["classic","modern","cosmic"] } } } } } }, responses: { 200: { description: "OK" } } } },
-      "/cart/items/{starId}": {
-        patch: { tags: ["Cart"], security: [{ bearerAuth: [] }], summary: "Update cart item", parameters: [{ in: "path", name: "starId", required: true, schema: { type: "string" } }], requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } }, responses: { 200: { description: "OK" } } },
-        delete: { tags: ["Cart"], security: [{ bearerAuth: [] }], summary: "Remove from cart", parameters: [{ in: "path", name: "starId", required: true, schema: { type: "string" } }], responses: { 200: { description: "OK" } } },
-      },
-
-      
-      "/me": { get: { tags: ["User"], security: [{ bearerAuth: [] }], summary: "Get current user", responses: { 200: { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } } } } } },
-      "/me/profile": { patch: { tags: ["User"], security: [{ bearerAuth: [] }], summary: "Update profile", requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } }, responses: { 200: { description: "OK" } } } },
-      "/me/device": { patch: { tags: ["User"], security: [{ bearerAuth: [] }], summary: "Update device", requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } }, responses: { 200: { description: "OK" } } } },
-
-      "/overlay/overlay": {
-        post: {
-          tags: ["Overlay"],
-          summary: "Solve image and guide to target star",
-          requestBody: {
-            required: true,
-            content: {
-              "multipart/form-data": {
+        responses: {
+          200: { 
+            description: "Login successful",
+            content: { 
+              "application/json": { 
                 schema: {
-                  type: "object",
-                  required: ["image", "userStarId"],
-                  properties: {
-                    image: { type: "string", format: "binary" },
-                    userStarId: { type: "string" },
-                    format: { type: "string", enum: ["json", "png"], default: "json" },
-                  },
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/AuthPayload" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          401: { 
+            description: "Invalid credentials",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+        },
+      },
+    },
+    "/auth/refresh": {
+      post: {
+        tags: ["Auth"],
+        summary: "Refresh access token",
+        description: "Get a new access token using refresh token",
+        security: [], // Uses refresh token in body instead
+        requestBody: {
+          required: true,
+          content: { 
+            "application/json": { 
+              schema: { 
+                type: "object", 
+                required: ["refreshToken"], 
+                properties: { 
+                  refreshToken: { type: "string", description: "Valid refresh token" } 
+                } 
+              }
+            }
+          }
+        },
+        responses: {
+          200: { 
+            description: "Token refreshed successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/AuthPayload" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          401: { 
+            description: "Invalid or expired refresh token",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+        },
+      },
+    },
+    "/auth/logout": {
+      post: {
+        tags: ["Auth"],
+        summary: "Logout user",
+        description: "Invalidate refresh token and logout user",
+        security: [], // Uses refresh token in body
+        requestBody: { 
+          required: true, 
+          content: { 
+            "application/json": { 
+              schema: { 
+                type: "object", 
+                required: ["refreshToken"], 
+                properties: { 
+                  refreshToken: { type: "string", description: "Refresh token to invalidate" } 
+                } 
+              }
+            }
+          }
+        },
+        responses: { 
+          200: { 
+            description: "Successfully logged out",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } }
+          }
+        },
+      },
+    },
+
+    // STARS ROUTES
+    "/stars": {
+      get: {
+        tags: ["Stars"],
+        summary: "List available stars",
+        description: "Get a paginated list of stars available for purchase or browse all stars",
+        security: [], // Public endpoint
+        parameters: [
+          { 
+            in: "query", 
+            name: "q", 
+            schema: { type: "string" }, 
+            description: "Search query for star names or constellations" 
+          },
+          { 
+            in: "query", 
+            name: "page", 
+            schema: { type: "integer", minimum: 1, default: 1 }, 
+            description: "Page number for pagination" 
+          },
+          { 
+            in: "query", 
+            name: "limit", 
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 25 }, 
+            description: "Number of items per page" 
+          },
+          { 
+            in: "query", 
+            name: "constellation", 
+            schema: { type: "string" }, 
+            description: "Filter by constellation name" 
+          },
+          { 
+            in: "query", 
+            name: "magnitudeMax", 
+            schema: { type: "number" }, 
+            description: "Maximum brightness magnitude (lower = brighter)" 
+          },
+          { 
+            in: "query", 
+            name: "nakedEye", 
+            schema: { type: "boolean" }, 
+            description: "Filter stars visible to naked eye" 
+          },
+          { 
+            in: "query", 
+            name: "binocular", 
+            schema: { type: "boolean" }, 
+            description: "Filter stars visible with binoculars" 
+          },
+          { 
+            in: "query", 
+            name: "sort", 
+            schema: { type: "string", enum: ["recent"] }, 
+            description: "Sort order" 
+          },
+        ],
+        responses: { 
+          200: { 
+            description: "Successfully retrieved stars",
+            content: { 
+              "application/json": { 
+                schema: { $ref: "#/components/schemas/PaginatedStarsResponse" }
+              }
+            }
+          }
+        },
+      },
+      post: {
+        tags: ["Stars"],
+        summary: "Create a new star",
+        description: "Create a star for yourself or as a gift for someone else",
+        security: [{ bearerAuth: [] }],
+        requestBody: { 
+          required: true, 
+          content: { 
+            "application/json": { 
+              schema: { $ref: "#/components/schemas/CreateStarRequest" },
+              examples: {
+                personal: {
+                  summary: "Personal star",
+                  value: {
+                    displayName: "My Lucky Star",
+                    baseName: "HD 12345",
+                    ra: 45.5,
+                    dec: 12.3,
+                    magnitude: 4.2,
+                    constellation: "Orion",
+                    certificateStyle: "modern"
+                  }
                 },
-              },
-            },
+                gift: {
+                  summary: "Gift star",
+                  value: {
+                    displayName: "Sarah's Star",
+                    recipientEmail: "sarah@example.com",
+                    certificateStyle: "cosmic",
+                    isGifted: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: { 
+          201: { 
+            description: "Star created successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/Star" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
           },
-          responses: {
-            200: { description: "Overlay result (JSON or PNG)", content: { "application/json": { schema: { $ref: "#/components/schemas/OverlayJson" } }, "image/png": { schema: { type: "string", format: "binary" } } } },
+          400: {
+            description: "Validation error",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
           },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
         },
       },
-
-      "/ownership/mint": { post: { tags: ["Ownership"], summary: "Mint token to email", requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["email"], properties: { email: { type: "string", format: "email" }, starId: { type: "string" }, orderId: { type: "string" } } } } } }, responses: { 200: { description: "OK" } } } },
-      "/ownership/stars": { get: { tags: ["Ownership"], summary: "List stars by email", parameters: [{ in: "query", name: "email", required: true, schema: { type: "string", format: "email" } }], responses: { 200: { description: "OK" } } } },
-      "/ownership/owner": { get: { tags: ["Ownership"], summary: "Get contract owner", responses: { 200: { description: "OK" } } } },
-      "/ownership/ownerOf": { get: { tags: ["Ownership"], summary: "Get token owner", parameters: [{ in: "query", name: "tokenId", required: true, schema: { type: "string" } }], responses: { 200: { description: "OK" } } } },
-      "/ownership/currentTokenId": { get: { tags: ["Ownership"], summary: "Get current token id", responses: { 200: { description: "OK" } } } },
-
-      "/certificates/create": { post: { tags: ["Certificates"], summary: "Create certificate checkout", responses: { 200: { description: "OK" } } } },
-      "/certificates/finalize": { post: { tags: ["Certificates"], summary: "Finalize certificate order (test)", responses: { 200: { description: "OK" } } } },
-
-      "/ai/certificate-message": { post: { tags: ["AI"], summary: "Generate certificate message", requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/AICertificateMessagePayload" } } } }, responses: { 200: { description: "OK" }, 400: { description: "Bad request" }, 503: { description: "AI not configured" } } } },
-
-      "/webhooks/stripe": {
-        post: {
-          tags: ["Webhooks"],
-          summary: "Stripe webhook",
-          requestBody: { required: true, content: { "application/json": { schema: { type: "object" } } } },
-          responses: { 200: { description: "Received" }, 400: { description: "Invalid signature" }, 500: { description: "Handler error" } },
-        },
-      },
-  },
+    },
+    "/stars/me/stars": { 
+      get: { 
+        tags: ["Stars"], 
+        security: [{ bearerAuth: [] }], 
+        summary: "List my owned stars", 
+        description: "Get all stars owned by the authenticated user",
+        parameters: [
+          { 
+            in: "query", 
+            name: "q", 
+            schema: { type: "string" }, 
+            description: "Search within owned stars" 
+          },
+          { 
+            in: "query", 
+            name: "page", 
+            schema: { type: "integer", minimum: 1, default: 1 } 
+          },
+          { 
+            in: "query", 
+            name: "limit", 
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 20 } 
+          }
+        ],
+        responses: { 
+          200: { 
+            description: "Successfully retrieved owned stars",
+            content: { 
+              "application/json": { 
+                schema: { $ref: "#/components/schemas/PaginatedStarsResponse" }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/stars/by-catalog/{catalogId}": { 
+      get: { 
+        tags: ["Stars"], 
+        summary: "Get star by catalog ID", 
+        description: "Retrieve a star using its catalog identifier",
+        security: [], // Public endpoint
+        parameters: [
+          { 
+            in: "path", 
+            name: "catalogId", 
+            required: true, 
+            schema: { type: "string" },
+            description: "Catalog identifier for the star"
+          }
+        ], 
+        responses: { 
+          200: { 
+            description: "Star found",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/Star" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }, 
+          404: { 
+            description: "Star not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    }
+  }
 };

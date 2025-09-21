@@ -9,7 +9,6 @@ export function useEventsReminder() {
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
   const [remindedIds, setRemindedIds] = useState<Set<string>>(new Set());
 
-  // Load persisted reminded IDs for this user
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -22,7 +21,6 @@ export function useEventsReminder() {
     return () => { mounted = false; };
   }, [storageKey]);
 
-  // Persist when IDs change
   useEffect(() => {
     (async () => {
       try { await AsyncStorage.setItem(storageKey, JSON.stringify(Array.from(remindedIds))); } catch {}
