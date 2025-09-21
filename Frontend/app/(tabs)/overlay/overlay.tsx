@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, Image, ActivityIndicator, ScrollView } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -26,7 +26,10 @@ export default function OverlayCaptureScreen() {
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") { setErrorText("Gallery access denied"); return; }
+    if (status !== "granted") {
+      setErrorText("Gallery access denied");
+      return;
+    }
     const out = await ImagePicker.launchImageLibraryAsync({ quality: 1 });
     if (out.canceled || !out.assets?.[0]?.uri) return;
     setPicked({ uri: out.assets[0].uri });
@@ -63,28 +66,52 @@ export default function OverlayCaptureScreen() {
   return (
     <View style={{ flex: 1 }}>
       <Background />
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}>
+      <ScrollView 
+        style={{ flex: 1 }} 
+        contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
+      >
         {errorText && <ErrorMessage text={errorText} onHide={() => setErrorText(null)} />}
 
-        <Text style={{ color: Colors.text, fontSize: 18, fontWeight: "700" }}>Locate Your Star</Text>
+        <Text style={{ color: Colors.text, fontSize: 18, fontWeight: "700" }}>
+          Locate Your Star
+        </Text>
 
         {picked && (
           <SectionCard>
-            <Image source={{ uri: picked.uri }} style={{ width: "100%", height: 240, resizeMode: "contain" }} />
+            <Image 
+              source={{ uri: picked.uri }} 
+              style={{ width: "100%", height: 240, resizeMode: "contain" }} 
+            />
           </SectionCard>
         )}
 
         {result && (
           <AnalysisResultCard
             result={result}
-            onOpenFinder={() => id && router.push({ pathname: "/(tabs)/overlay/finder", params: { starId: id } })}
+            onOpenFinder={() => id && router.push({ 
+              pathname: "/(tabs)/overlay/finder", 
+              params: { starId: id } 
+            })}
           />
         )}
 
         <SectionCard style={{ gap: 10 }}>
-          <PrimaryButton text={picked ? "Pick Another Image" : "Pick Sky Image"} onPress={pickImage} />
-          <PrimaryButton text={analyzeLabel} onPress={analyze} variant={!picked || busy ? "secondary" : "primary"} />
-          <PrimaryButton text="Open Live Finder" onPress={() => id && router.push({ pathname: "/(tabs)/overlay/finder", params: { starId: id } })} />
+          <PrimaryButton 
+            text={picked ? "Pick Another Image" : "Pick Sky Image"} 
+            onPress={pickImage} 
+          />
+          <PrimaryButton 
+            text={analyzeLabel} 
+            onPress={analyze} 
+            variant={!picked || busy ? "secondary" : "primary"} 
+          />
+          <PrimaryButton 
+            text="Open Live Finder" 
+            onPress={() => id && router.push({ 
+              pathname: "/(tabs)/overlay/finder", 
+              params: { starId: id } 
+            })} 
+          />
           {busy && <ActivityIndicator />}
         </SectionCard>
       </ScrollView>
