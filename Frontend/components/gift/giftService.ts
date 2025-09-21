@@ -72,7 +72,6 @@ export class GiftService {
       }
     }
 
-    // Handle failed items
     if (failed.length > 0) {
       for (const failedItem of failed) {
         onItemRemove(failedItem.id);

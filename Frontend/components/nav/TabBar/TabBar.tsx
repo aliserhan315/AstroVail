@@ -1,17 +1,11 @@
 import React, { JSX } from "react";
 import { View, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter, usePathname } from "expo-router";
-
-import TabBarItem from "./TabBarItem";
+import { useRouter, usePathname, type Href } from "expo-router";
 import { Home, Star, Calendar, Gift, User } from "lucide-react-native";
-import type { Href } from "expo-router";
 
-const BG = "#0B0F1A";
-const ACTIVE_ICON = "#3B6BFF";
-const INACTIVE_ICON = "rgba(255,255,255,0.60)";
-const ACTIVE_BG = "rgba(59,107,255,0.28)";
-const BAR_HEIGHT = Platform.select({ ios: 86, android: 76, default: 72 });
+import TabBarItem from "../TabBarItem/TabBarItem";
+import { styles, BAR_HEIGHT,  ACTIVE_BG, ACTIVE_ICON, INACTIVE_ICON } from "./TabBar.style";
 
 type NavItem = {
   key: string;
@@ -66,24 +60,17 @@ export default function TabBar() {
 
   return (
     <View
-      style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: BG,
-        borderTopColor: "transparent",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-around",
-        height: BAR_HEIGHT,
-        paddingTop: 8,
-        paddingBottom: Platform.select({
-          ios: 12 + insets.bottom,
-          android: 12 + insets.bottom,
-          default: 12,
-        }),
-      }}
+      style={[
+        styles.bar,
+        {
+          height: BAR_HEIGHT,
+          paddingBottom: Platform.select({
+            ios: 12 + insets.bottom,
+            android: 12 + insets.bottom,
+            default: 12,
+          }),
+        },
+      ]}
     >
       {NAV_ITEMS.map((item) => {
         const isActive = item.match.test(pathname);

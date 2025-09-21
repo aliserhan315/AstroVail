@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { CertificateStyle } from "@/types/cart";
-import styles from "../../app/(tabs)/gift/gift.styles";
+import styles from "../../../app/(tabs)/gift/gift.styles";
 
 interface CertificateStyleSelectorProps {
   selectedStyle: CertificateStyle;

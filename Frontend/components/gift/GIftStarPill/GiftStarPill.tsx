@@ -32,7 +32,7 @@ export default function GiftStarPill({
         ) : null}
       </View>
       <Text style={styles.sub}>
-        Mag {star.mag ?? "—"} · {star.constellation ?? "—"}
+        Mag {star.mag ?? "-"} · {star.constellation ?? "-"}
       </Text>
     </View>
   );

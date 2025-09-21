@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, StatusBar, ActivityIndicator, FlatList, RefreshControl, Alert } from "react-native";
+import { View, Text, StatusBar, ActivityIndicator, FlatList,RefreshControl,Alert,} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Background from "@/components/Background";
 import NotificationCard, { NotiItem } from "@/components/Events/Notificationcard/NotificationCard";
 import { NotiAPI } from "@/lib/endpoint";
-import { Colors } from "@/constants/Colors";
+import { styles } from "./notification.style";
 
 type RawNoti = {
   _id: string;
@@ -23,7 +23,9 @@ function formatRightLabel(n: RawNoti) {
     const isToday = d.toDateString() === now.toDateString();
     const opts: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
     const t = d.toLocaleTimeString(undefined, opts).replace(":00", "");
-    return isToday ? `Today at ${t}` : d.toLocaleDateString(undefined, { month: "long", day: "numeric" });
+    return isToday
+      ? `Today at ${t}`
+      : d.toLocaleDateString(undefined, { month: "long", day: "numeric" });
   }
   if (n?.createdAt) {
     const d = new Date(n.createdAt);
@@ -31,7 +33,9 @@ function formatRightLabel(n: RawNoti) {
     const isToday = d.toDateString() === now.toDateString();
     const opts: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
     const t = d.toLocaleTimeString(undefined, opts).replace(":00", "");
-    return isToday ? `Today at ${t}` : d.toLocaleDateString(undefined, { month: "long", day: "numeric" });
+    return isToday
+      ? `Today at ${t}`
+      : d.toLocaleDateString(undefined, { month: "long", day: "numeric" });
   }
   return "";
 }
@@ -71,30 +75,36 @@ export default function NotificationsScreen() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try { await load(); } finally { setRefreshing(false); }
+    try {
+      await load();
+    } finally {
+      setRefreshing(false);
+    }
   }, [load]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
+    <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <Background />
 
-      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 16, marginBottom: 8 }}>
-        <Text style={{ color: Colors.text, fontSize: 28, fontWeight: "800" }}>Notifications</Text>
-        <Text style={{ color: "#B6B6B6", fontSize: 14, marginTop: 4 }}>Check your notifications</Text>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <Text style={styles.title}>Notifications</Text>
+        <Text style={styles.subtitle}>Check your notifications</Text>
       </View>
 
       {loading ? (
-        <View style={{ alignItems: "center", marginTop: 24 }}>
+        <View style={styles.loadingWrap}>
           <ActivityIndicator color="#fff" />
         </View>
       ) : items.length === 0 ? (
-        <View style={{ alignItems: "center", marginTop: 32, paddingHorizontal: 16 }}>
-          <Text style={{ color: "#9CA3AF", fontSize: 14 }}>No notifications yet</Text>
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyText}>No notifications yet</Text>
         </View>
       ) : (
         <FlatList
@@ -109,7 +119,7 @@ export default function NotificationsScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
           }
-          contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
+          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 28 }]}
         />
       )}
     </View>
