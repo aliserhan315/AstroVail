@@ -51,31 +51,23 @@
 <img src="./readme/title5.svg"/>
 
 ### User Screens (Mobile)
+
 | [Home](Frontend/app/index.tsx) | [Events](Frontend/app/(tabs)/events/index.tsx) | [Notifications](Frontend/app/(tabs)/notifications/index.tsx) |
 | --- | --- | --- |
 | ![Home](./readme/demo/home.jpg) | ![Events](./readme/demo/Events.jpg) | ![Notifications](./readme/demo/Notification.jpg) |
 
-| [Overlay](Frontend/app/(tabs)/overlay/overlay.tsx) | [Star Details](Frontend/app/(tabs)/star/[starId].tsx) | [Gift](Frontend/app/(tabs)/gift/index.tsx) |
+| [Overlay](Frontend/app/(tabs)/overlay/overlay.tsx) | [Star Details](Frontend/app/(tabs)/star/[starId].tsx) (GIF) | [Gift](Frontend/app/(tabs)/gift/index.tsx) (GIF) |
 | --- | --- | --- |
-| ![Overlay](./readme/demo/Overlay.jpg) | ![Star Details](./readme/demo/Star.mp4) | ![Gift](./readme/demo/Gift.mp4) |
+| ![Overlay](./readme/demo/Overlay.jpg) | <img src="./readme/demo/Star.gif" width="280" alt="Star Details"/> | <img src="./readme/demo/Gift.gif" width="280" alt="Gift"/> |
 
-| [AI Gift](Frontend/components/gift/GiftAIQuickModal/GiftAIQuickModal.tsx) | [Checkout](Frontend/app/checkout/index.tsx) | [Profile](Frontend/app/(tabs)/profile/index.tsx) |
+| [AI Gift](Frontend/components/gift/GiftAIQuickModal/GiftAIQuickModal.tsx) (GIF) | [Checkout](Frontend/app/checkout/index.tsx) (GIF) | [Profile](Frontend/app/(tabs)/profile/index.tsx) (GIF) |
 | --- | --- | --- |
-| ![AI Gift](./readme/demo/Aigift.mp4) | ![Checkout](./readme/demo/buying.mp4) | ![Profile](./readme/demo/Profile.mp4) |
+| <img src="./readme/demo/Aigift.gif" width="280" alt="AI Gift"/> | <img src="./readme/demo/buying.gif" width="280" alt="Checkout"/> | <img src="./readme/demo/Profile.gif" width="280" alt="Profile"/> |
 
-| [Login](Frontend/app/(auth)/login.tsx) | [Register](Frontend/app/(auth)/register.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) |
+| [Login](Frontend/app/(auth)/login.tsx) | [Register](Frontend/app/(auth)/register.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) (GIF) |
 | --- | --- | --- |
-| ![Login](./readme/demo/Sign.jpg) | ![Register](./readme/demo/Register.jpg) | ![Sky Finder](./readme/demo/skyfinder.mp4) |
+| ![Login](./readme/demo/Sign.jpg) | ![Register](./readme/demo/Register.jpg) | <img src="./readme/demo/skyfinder.gif" width="280" alt="Sky Finder"/> |
 
-## Alternative with Clickable Video Links
-
-| [Star Details](Frontend/app/(tabs)/star/[starId].tsx) | [Gift](Frontend/app/(tabs)/gift/index.tsx) | [Profile](Frontend/app/(tabs)/profile/index.tsx) |
-| --- | --- | --- |
-| [▶️ **Watch Star Details Demo**](./readme/demo/Star.mp4) | [▶️ **Watch Gift Demo**](./readme/demo/Gift.mp4) | [▶️ **Watch Profile Demo**](./readme/demo/Profile.mp4) |
-
-| [AI Gift](Frontend/components/gift/GiftAIQuickModal/GiftAIQuickModal.tsx) | [Checkout](Frontend/app/checkout/index.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) |
-| --- | --- | --- |
-| [▶️ **Watch AI Gift Demo**](./readme/demo/Aigift.mp4) | [▶️ **Watch Checkout Demo**](./readme/demo/buying.mp4) | [▶️ **Watch Sky Finder Demo**](./readme/demo/skyfinder.mp4) |
 <br>
 
 ### Pages (from the app)
