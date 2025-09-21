@@ -56,9 +56,9 @@
 | --- | --- | --- |
 | <img src="./readme/demo/home.jpg" width="280" alt="Home"/> | <img src="./readme/demo/Events.jpg" width="280" alt="Events"/> | <img src="./readme/demo/Notification.jpg" width="280" alt="Notifications"/> |
 
-| [Overlay](Frontend/app/(tabs)/overlay/overlay.tsx) | [Star Details](Frontend/app/(tabs)/star/[starId].tsx) (GIF) | [Gift](Frontend/app/(tabs)/gift/index.tsx) (GIF) |
+| [Overlay](Frontend/app/(tabs)/overlay/overlay.tsx) | [Star Details](Frontend/app/(tabs)/star/[starId].tsx) (Image) | View Certificate (GIF) |
 | --- | --- | --- |
-| <img src="./readme/demo/Overlay.jpg" width="280" alt="Overlay"/> | <img src="./readme/demo/Star.gif" width="280" alt="Star Details"/> | <img src="./readme/demo/Gift.gif" width="280" alt="Gift"/> |
+| <img src="./readme/demo/Overlay.jpg" width="280" alt="Overlay"/> | <img src="./readme/demo/Stardetails.jpg" width="280" alt="Star Details"/> | <img src="./readme/demo/ViewCertificate.gif" width="280" alt="View Certificate"/> |
 
 | [Gift](Frontend/app/(tabs)/gift/index.tsx) (GIF) | [Checkout](Frontend/app/checkout/index.tsx) (GIF) | [Profile](Frontend/app/(tabs)/profile/index.tsx) (GIF) |
 | --- | --- | --- |
@@ -66,7 +66,7 @@
 
 | [Login](Frontend/app/(auth)/login.tsx) | [Register](Frontend/app/(auth)/register.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) (GIF) |
 | --- | --- | --- |
-| <img src="./readme/demo/Sign.jpg" width="280" alt="Login"/> | <img src="./readme/demo/Register.jpg" width="280" alt="Register"/> | <img src="./readme/demo/skyfinder.gif" width="280" alt="Sky Finder"/> |
+| <img src="./readme/demo/Sign.jpg" width="280" alt="Login"/> | <img src="./readme/demo/Register.jpg" width="280" alt="Register"/> | <img src="./readme/demo/SkyFinder.gif" width="280" alt="Sky Finder"/> |
 
 <br>
 
