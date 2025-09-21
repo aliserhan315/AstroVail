@@ -66,7 +66,7 @@
 
 | [Login](Frontend/app/(auth)/login.tsx) | [Register](Frontend/app/(auth)/register.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) (GIF) |
 | --- | --- | --- |
-| <img src="./readme/demo/Sign.jpg" width="280" alt="Login"/> | <img src="./readme/demo/Register.jpg" width="280" alt="Register"/> | <img src="./readme/demo/SkyFinder.gif" width="280" alt="Sky Finder"/> |
+| <img src="./readme/demo/Sign.jpg" width="280" alt="Login"/> | <img src="./readme/demo/Register.jpg" width="280" alt="Register"/> | <img src="./readme/demo/skyfinder.gif" width="280" alt="Sky Finder"/> |
 
 <br>
 
