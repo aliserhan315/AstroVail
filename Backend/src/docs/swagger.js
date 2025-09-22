@@ -146,6 +146,23 @@ export const swaggerSpec = {
         },
         required: ["_id", "email"]
       },
+      UpdateUserRequest: {
+        type: "object",
+        properties: {
+          firstName: { type: "string", maxLength: 50 },
+          lastName: { type: "string", maxLength: 50 },
+          displayName: { type: "string", maxLength: 100 },
+          tz: { type: "string", description: "IANA timezone" },
+          location: {
+            type: "object",
+            properties: {
+              lat: { type: "number", minimum: -90, maximum: 90 },
+              lon: { type: "number", minimum: -180, maximum: 180 },
+              accuracy: { type: "number", minimum: 0 }
+            }
+          }
+        }
+      },
       AuthPayload: {
         type: "object",
         properties: {
@@ -232,6 +249,39 @@ export const swaggerSpec = {
           certificateStyle: { type: "string", enum: ["classic", "modern", "cosmic"], default: "classic" }
         }
       },
+      CheckoutRequest: {
+        type: "object",
+        properties: {
+          paymentMethodId: { type: "string", description: "Stripe payment method ID" },
+          billingAddress: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              email: { type: "string", format: "email" },
+              line1: { type: "string" },
+              line2: { type: "string", nullable: true },
+              city: { type: "string" },
+              state: { type: "string" },
+              postal_code: { type: "string" },
+              country: { type: "string" }
+            },
+            required: ["name", "email", "line1", "city", "country"]
+          }
+        }
+      },
+      Order: {
+        type: "object",
+        properties: {
+          _id: { type: "string" },
+          userId: { type: "string" },
+          items: { type: "array", items: { $ref: "#/components/schemas/CartItem" } },
+          totalCents: { type: "integer" },
+          status: { type: "string", enum: ["pending", "completed", "failed"] },
+          paymentIntentId: { type: "string", nullable: true },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" }
+        }
+      },
       OverlayJson: {
         type: "object",
         properties: {
@@ -315,19 +365,53 @@ export const swaggerSpec = {
             }
           }
         }
+      },
+      PaginatedEventsResponse: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: true },
+          message: { type: "string", example: "OK" },
+          data: {
+            type: "object",
+            properties: {
+              items: { type: "array", items: { $ref: "#/components/schemas/Event" } },
+              page: { type: "integer", description: "Current page number" },
+              limit: { type: "integer", description: "Items per page" },
+              total: { type: "integer", description: "Total number of items" },
+              totalPages: { type: "integer", description: "Total number of pages" }
+            }
+          }
+        }
+      },
+      PaginatedNotificationsResponse: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: true },
+          message: { type: "string", example: "OK" },
+          data: {
+            type: "object",
+            properties: {
+              items: { type: "array", items: { $ref: "#/components/schemas/Notification" } },
+              page: { type: "integer", description: "Current page number" },
+              limit: { type: "integer", description: "Items per page" },
+              total: { type: "integer", description: "Total number of items" },
+              totalPages: { type: "integer", description: "Total number of pages" }
+            }
+          }
+        }
       }
     },
   },
   
   security: [{ bearerAuth: [] }],
   paths: {
-    // AUTH ROUTES
+    // Auth endpoints
     "/auth/register": {
       post: {
         tags: ["Auth"],
         summary: "Register a new user",
         description: "Create a new user account with email and password",
-        security: [], // Public endpoint
+        security: [], 
         requestBody: {
           required: true,
           content: {
@@ -377,7 +461,7 @@ export const swaggerSpec = {
         tags: ["Auth"],
         summary: "Login user",
         description: "Authenticate user with email and password",
-        security: [], // Public endpoint
+        security: [],
         requestBody: {
           required: true,
           content: { 
@@ -426,7 +510,7 @@ export const swaggerSpec = {
         tags: ["Auth"],
         summary: "Refresh access token",
         description: "Get a new access token using refresh token",
-        security: [], // Uses refresh token in body instead
+        security: [],
         requestBody: {
           required: true,
           content: { 
@@ -472,7 +556,7 @@ export const swaggerSpec = {
         tags: ["Auth"],
         summary: "Logout user",
         description: "Invalidate refresh token and logout user",
-        security: [], // Uses refresh token in body
+        security: [], 
         requestBody: { 
           required: true, 
           content: { 
@@ -496,13 +580,13 @@ export const swaggerSpec = {
       },
     },
 
-    // STARS ROUTES
+    // Stars endpoints
     "/stars": {
       get: {
         tags: ["Stars"],
         summary: "List available stars",
         description: "Get a paginated list of stars available for purchase or browse all stars",
-        security: [], // Public endpoint
+        security: [],
         parameters: [
           { 
             in: "query", 
@@ -675,7 +759,7 @@ export const swaggerSpec = {
         tags: ["Stars"], 
         summary: "Get star by catalog ID", 
         description: "Retrieve a star using its catalog identifier",
-        security: [], // Public endpoint
+        security: [], 
         parameters: [
           { 
             in: "path", 
@@ -706,6 +790,844 @@ export const swaggerSpec = {
           }, 
           404: { 
             description: "Star not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/stars/{id}": {
+      get: {
+        tags: ["Stars"],
+        summary: "Get star by ID",
+        description: "Retrieve a specific star by its ID",
+        security: [],
+        parameters: [
+          { 
+            in: "path", 
+            name: "id", 
+            required: true, 
+            schema: { type: "string" },
+            description: "Star ID"
+          }
+        ],
+        responses: {
+          200: {
+            description: "Star found",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/Star" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          404: {
+            description: "Star not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      },
+      put: {
+        tags: ["Stars"],
+        summary: "Update star",
+        description: "Update star details (only if you own it)",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { 
+            in: "path", 
+            name: "id", 
+            required: true, 
+            schema: { type: "string" },
+            description: "Star ID"
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateStarRequest" }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: "Star updated successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/Star" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          403: {
+            description: "Not owner of this star",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          404: {
+            description: "Star not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // Events endpoints
+    "/events": {
+      get: {
+        tags: ["Events"],
+        summary: "List astronomy events",
+        description: "Get a paginated list of upcoming astronomy events",
+        security: [],
+        parameters: [
+          { 
+            in: "query", 
+            name: "page", 
+            schema: { type: "integer", minimum: 1, default: 1 } 
+          },
+          { 
+            in: "query", 
+            name: "limit", 
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 20 } 
+          },
+          { 
+            in: "query", 
+            name: "upcoming", 
+            schema: { type: "boolean", default: true }, 
+            description: "Filter for upcoming events only" 
+          },
+          {
+            in: "query",
+            name: "source",
+            schema: { type: "string" },
+            description: "Filter by event source"
+          }
+        ],
+        responses: {
+          200: {
+            description: "Successfully retrieved events",
+            content: { 
+              "application/json": { 
+                schema: { $ref: "#/components/schemas/PaginatedEventsResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{id}": {
+      get: {
+        tags: ["Events"],
+        summary: "Get event by ID",
+        description: "Retrieve a specific astronomy event",
+        security: [],
+        parameters: [
+          { 
+            in: "path", 
+            name: "id", 
+            required: true, 
+            schema: { type: "string" },
+            description: "Event ID"
+          }
+        ],
+        responses: {
+          200: {
+            description: "Event found",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/Event" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          404: {
+            description: "Event not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // User endpoints
+    "/user/me": {
+      get: {
+        tags: ["User"],
+        summary: "Get current user profile",
+        description: "Retrieve the authenticated user's profile information",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "User profile retrieved",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/User" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      },
+      put: {
+        tags: ["User"],
+        summary: "Update user profile",
+        description: "Update the authenticated user's profile information",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateUserRequest" }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: "Profile updated successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/User" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          400: {
+            description: "Validation error",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // Notifications endpoints
+    "/notifications": {
+      get: {
+        tags: ["Notifications"],
+        summary: "Get user notifications",
+        description: "Retrieve paginated list of user notifications",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { 
+            in: "query", 
+            name: "page", 
+            schema: { type: "integer", minimum: 1, default: 1 } 
+          },
+          { 
+            in: "query", 
+            name: "limit", 
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 20 } 
+          },
+          {
+            in: "query",
+            name: "unread",
+            schema: { type: "boolean" },
+            description: "Filter for unread notifications only"
+          }
+        ],
+        responses: {
+          200: {
+            description: "Notifications retrieved successfully",
+            content: { 
+              "application/json": { 
+                schema: { $ref: "#/components/schemas/PaginatedNotificationsResponse" }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/notifications/{id}/read": {
+      post: {
+        tags: ["Notifications"],
+        summary: "Mark notification as read",
+        description: "Mark a specific notification as read",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { 
+            in: "path", 
+            name: "id", 
+            required: true, 
+            schema: { type: "string" },
+            description: "Notification ID"
+          }
+        ],
+        responses: {
+          200: {
+            description: "Notification marked as read",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          404: {
+            description: "Notification not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/notifications/read-all": {
+      post: {
+        tags: ["Notifications"],
+        summary: "Mark all notifications as read",
+        description: "Mark all user notifications as read",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "All notifications marked as read",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // Cart endpoints
+    "/cart": {
+      get: {
+        tags: ["Cart"],
+        summary: "Get user cart",
+        description: "Retrieve the user's shopping cart",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Cart retrieved successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/Cart" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      },
+      delete: {
+        tags: ["Cart"],
+        summary: "Clear cart",
+        description: "Remove all items from the user's cart",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Cart cleared successfully",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/cart/add": {
+      post: {
+        tags: ["Cart"],
+        summary: "Add item to cart",
+        description: "Add a star to the user's shopping cart",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/AddToCartRequest" }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: "Item added to cart successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/Cart" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          400: {
+            description: "Validation error or star already owned",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/cart/remove/{starId}": {
+      delete: {
+        tags: ["Cart"],
+        summary: "Remove item from cart",
+        description: "Remove a specific star from the user's cart",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { 
+            in: "path", 
+            name: "starId", 
+            required: true, 
+            schema: { type: "string" },
+            description: "Star ID to remove from cart"
+          }
+        ],
+        responses: {
+          200: {
+            description: "Item removed from cart successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/Cart" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          404: {
+            description: "Item not found in cart",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // Checkout endpoints
+    "/checkout/create-intent": {
+      post: {
+        tags: ["Checkout"],
+        summary: "Create payment intent",
+        description: "Create a Stripe payment intent for the user's cart",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Payment intent created successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: {
+                          type: "object",
+                          properties: {
+                            clientSecret: { type: "string" },
+                            paymentIntentId: { type: "string" },
+                            amount: { type: "integer" }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          400: {
+            description: "Empty cart or validation error",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/checkout/confirm": {
+      post: {
+        tags: ["Checkout"],
+        summary: "Confirm checkout",
+        description: "Complete the checkout process and create order",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CheckoutRequest" }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: "Checkout completed successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/Order" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          400: {
+            description: "Payment failed or validation error",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // Overlay endpoints
+    "/overlay/process": {
+      post: {
+        tags: ["Overlay"],
+        summary: "Process astrometry overlay",
+        description: "Process an astronomical image to identify stars and create overlay data",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                properties: {
+                  image: {
+                    type: "string",
+                    format: "binary",
+                    description: "Astronomical image file"
+                  },
+                  starId: {
+                    type: "string",
+                    description: "Target star ID for overlay"
+                  }
+                },
+                required: ["image", "starId"]
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: "Overlay processed successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/OverlayJson" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          400: {
+            description: "Invalid image or processing error",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // Ownership endpoints
+    "/ownership/verify": {
+      post: {
+        tags: ["Ownership"],
+        summary: "Verify star ownership",
+        description: "Verify ownership of a star on the blockchain",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["starId"],
+                properties: {
+                  starId: { type: "string", description: "Star ID to verify ownership" }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: "Ownership verified",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: { $ref: "#/components/schemas/OwnershipRecord" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          404: {
+            description: "Ownership record not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // Certificates endpoints
+    "/certificates/{starId}/generate": {
+      post: {
+        tags: ["Certificates"],
+        summary: "Generate star certificate",
+        description: "Generate a certificate for an owned star",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { 
+            in: "path", 
+            name: "starId", 
+            required: true, 
+            schema: { type: "string" },
+            description: "Star ID to generate certificate for"
+          }
+        ],
+        requestBody: {
+          required: false,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  format: { type: "string", enum: ["pdf", "png"], default: "pdf" },
+                  style: { type: "string", enum: ["classic", "modern", "cosmic"] }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: "Certificate generated successfully",
+            content: { 
+              "application/pdf": {
+                schema: {
+                  type: "string",
+                  format: "binary"
+                }
+              },
+              "image/png": {
+                schema: {
+                  type: "string",
+                  format: "binary"
+                }
+              }
+            }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          403: {
+            description: "Not owner of this star",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          404: {
+            description: "Star not found",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // AI endpoints
+    "/ai/certificate-message": {
+      post: {
+        tags: ["AI"],
+        summary: "Generate AI certificate message",
+        description: "Generate personalized certificate messages using AI",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/AICertificateMessagePayload" }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: "Message generated successfully",
+            content: { 
+              "application/json": { 
+                schema: {
+                  allOf: [
+                    { $ref: "#/components/schemas/Success" },
+                    {
+                      type: "object",
+                      properties: {
+                        data: {
+                          type: "object",
+                          properties: {
+                            messages: {
+                              type: "array",
+                              items: { type: "string" },
+                              description: "Generated message variations"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          400: {
+            description: "Validation error",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          },
+          401: {
+            description: "Unauthorized",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+
+    // Webhook endpoints (no auth required)
+    "/webhooks/stripe": {
+      post: {
+        tags: ["Webhooks"],
+        summary: "Stripe webhook handler",
+        description: "Handle incoming Stripe webhooks for payment processing",
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                description: "Stripe webhook payload"
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: "Webhook processed successfully",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/Success" } } }
+          },
+          400: {
+            description: "Invalid webhook payload",
             content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
           }
         }

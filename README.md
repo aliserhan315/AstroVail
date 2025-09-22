@@ -1,58 +1,49 @@
 <img src="./readme/title1.svg"/>
 
 <br><br>
+
 <!-- Project Overview -->
 <img src="./readme/title2.svg"/>
 
-**AstroVail** is a blockchain-powered mobile astronomy app where users can **claim, gift, and personalize real stars** from verified astronomical databases.  
- Combining **blockchain technology**, **AI personalization**, and **interactive sky exploration**, AstroVail offers star enthusiasts, collectors, and gift-givers a unique, engaging experience.  
+> AstroVail is a mobile-first astronomy platform to discover, claim, and gift real stars.
+> It blends on-chain ownership, an AI-assisted experience, and a live sky finder overlay.
+> Users can verify ownership on blockchain, generate certificates, and locate stars in the night sky.
 
- Users can:  
- - Discover stars by name, brightness, constellation, or coordinates using an interactive sky map.  
- - Securely claim star ownership recorded on blockchain smart contracts for permanent proof.  
- - Personalize stars with AI-generated stories, custom constellations, and digital artwork.  
- - Gift stars with verifiable digital certificates and blockchain-backed ownership transfer.  
- - Recognize their stars in the night sky via phone camera with GPS and compass-assisted sky matching.  
- - Track real-time visibility and position of owned stars.  
- - Receive location-based notifications for upcoming cosmic events like meteor showers and eclipses.  
-
- This project uniquely blends **astronomy, decentralized ownership, AI-powered storytelling, and social interaction** into a living, breathing cosmic experience.
+**Users can:**
+- Explore stars by constellation, brightness, or coordinates
+- Claim verifiable ownership on-chain and generate certificates
+- Create AI-powered stories and personalized gifts
+- Use the Live Finder overlay to locate stars in real time
+- Get event alerts (meteor showers, eclipses, ISS passes)
 
 <br><br>
 
 <!-- System Design -->
-<img src="./readme/title3.svg" alt="System Design" style="margin-bottom: 1rem;"/>
+<img src="./readme/title3.svg"/>
 
-### High-Level Architecture
+### System Design Diagram
+<img src="./readme/SystemDesign.png" alt="System Design"/>
 
-- **Frontend (Mobile)** – Built with **React Native** for smooth, responsive, cross-platform mobile experience.  
-- **Backend API** – Powered by **Nest.js** with **MongoDB**, handling authentication, star data retrieval, user management, and blockchain integration.  
-- **Blockchain Layer** – Ethereum-compatible smart contracts to securely record and verify star ownership.  
-- **Astronomy Data Source** – Integration with **SIMBAD Astronomical Database** for accurate, real-time star data.  
-- **AI Services** – AI models generate personalized star descriptions, constellation stories, and smart recommendations.  
-- **Cloud Storage & CDN** – Hosting for media, star images, generated certificates, and app assets.  
-- **Authentication & Security** – Secure JWT-based authentication and robust API request validation.
+### Tech Stack
+<img src="./readme/Techstack.png" alt="Tech Stack"/>
+
+### On-Chain Ownership
+<img src="./readme/blockChain.png" alt="Blockchain Overview"/>
 
 <br><br>
 
 <!-- Project Highlights -->
-<img src="./readme/title4.svg" alt="Project Highlights" style="margin-bottom: 1rem;"/>
+<img src="./readme/title4.svg"/>
 
-### Key Features
+### The Journey of the Sexy Features
+- Live Sky Finder Overlay: camera + GPS + compass to guide you to your star.
+- On‑Chain Star Ownership: mint, claim, and transfer with verifiable proofs.
+- AI Star Storyteller: personalized lore for gifts and certificates.
+- Event & Notification Center: timely cosmic events and reminders.
+- Seamless Gift Flow & Checkout: purchase, personalize, preview certificate.
 
-- **Star Claiming via Blockchain** – Secure, verifiable proof of ownership using smart contracts.  
-- **Live Sky Map** – Explore real-time constellations and available stars on an interactive map.  
-- **AI Star Storyteller** – Custom AI-generated stories about your star’s history, myth, and traits.  
-- **Gift a Star** – Send stars as unique digital gifts with blockchain certificates.  
-- **Constellation Builder** – Connect owned stars into custom constellations and share them.  
-- **Smart Recommendations** – AI suggests stars based on brightness, rarity, mythology, and user preferences.  
-- **Star Recognition** – Point your phone camera to the night sky and see your stars highlighted using GPS and compass-assisted sky matching.  
-- **Real-Time Star Updates** – Track the live position and visibility of your stars anytime.  
-- **Cosmic Event Notifications** – Receive alerts for meteor showers, eclipses, and other celestial events visible from your location.  
-- **Mobile-First Experience** – Fully optimized for Android and iOS devices built with React Native.
-<br><br>
-
-
+### Feature Diagram
+<img src="./readme/features.jpg" alt="Feature Diagram"/>
 
 <br><br>
 
@@ -61,43 +52,79 @@
 
 ### User Screens (Mobile)
 
-| Login screen                            | Register screen                       | Register screen                       |
-| --------------------------------------- | ------------------------------------- | ------------------------------------- |
-| ![Landing](./readme/demo/1440x1024.png) | ![fsdaf](./readme/demo/1440x1024.png) | ![fsdaf](./readme/demo/1440x1024.png) |
+| [Home](Frontend/app/index.tsx) | [Events](Frontend/app/(tabs)/events/index.tsx) | [Notifications](Frontend/app/(tabs)/notifications/index.tsx) |
+| --- | --- | --- |
+| <img src="./readme/demo/home.jpg" width="280" alt="Home"/> | <img src="./readme/demo/Events.jpg" width="280" alt="Events"/> | <img src="./readme/demo/Notification.jpg" width="280" alt="Notifications"/> |
 
+| [Overlay](Frontend/app/(tabs)/overlay/overlay.tsx) | [Star Details](Frontend/app/(tabs)/star/[starId].tsx) (Image) | View Certificate (GIF) |
+| --- | --- | --- |
+| <img src="./readme/demo/Overlay.jpg" width="280" alt="Overlay"/> | <img src="./readme/demo/Stardetails.jpg" width="280" alt="Star Details"/> | <img src="./readme/demo/ViewCertificate.gif" width="280" alt="View Certificate"/> |
 
-### Admin Screens (Web)
+| [Gift](Frontend/app/(tabs)/gift/index.tsx) (GIF) | [Checkout](Frontend/app/checkout/index.tsx) (GIF) | [Profile](Frontend/app/(tabs)/profile/index.tsx) (GIF) |
+| --- | --- | --- |
+| <img src="./readme/demo/Aigift.gif" width="280" alt="Gift"/> | <img src="./readme/demo/buying.gif" width="280" alt="Checkout"/> | <img src="./readme/demo/Profile.gif" width="280" alt="Profile"/> |
 
-| Login screen                            | Register screen                       |
-| --------------------------------------- | ------------------------------------- |
-| ![Landing](./readme/demo/1440x1024.png) | ![fsdaf](./readme/demo/1440x1024.png) |
+| [Login](Frontend/app/(auth)/login.tsx) | [Register](Frontend/app/(auth)/register.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) (GIF) |
+| --- | --- | --- |
+| <img src="./readme/demo/Sign.jpg" width="280" alt="Login"/> | <img src="./readme/demo/Register.jpg" width="280" alt="Register"/> | <img src="./readme/demo/skyfinder.gif" width="280" alt="Sky Finder"/> |
 
+<br>
+
+### Pages (from the app)
+- Onboarding: `Frontend/app/onboarding/index.tsx`
+- Auth: `Frontend/app/(auth)/login.tsx`, `Frontend/app/(auth)/register.tsx`
+- Tabs Root: `Frontend/app/(tabs)/index.tsx`
+- Home/Explore: `Frontend/app/index.tsx`, `Frontend/app/(tabs)/explore/index.tsx`
+- Stars: `Frontend/app/(tabs)/Stars/index.tsx`
+- Star Details: `Frontend/app/(tabs)/star/[starId].tsx`
+- Gift: `Frontend/app/(tabs)/gift/index.tsx`
+- Events: `Frontend/app/(tabs)/events/index.tsx`
+- Notifications: `Frontend/app/(tabs)/notifications/index.tsx`
+- Overlay (Finder + Overlay): `Frontend/app/(tabs)/overlay/finder.tsx`, `Frontend/app/(tabs)/overlay/overlay.tsx`
+- Profile: `Frontend/app/(tabs)/profile/index.tsx`
+- Checkout: `Frontend/app/checkout/index.tsx`
+
+<br>
+
+### Automation Workflow
+| n8n Workflow |
+| --- |
+| ![n8n](./readme/n8n.png) |
+
+### Swagger
+| Swagger UI | API Docs |
+| --- | --- |
+| ![Swagger UI](./readme/Swagger.png) | ![Swagger Docs](./readme/swagger2.png) |
 
 <br><br>
 
 <!-- Development & Testing -->
 <img src="./readme/title6.svg"/>
 
-### Add Title Here
+### Services
+- Stars, Events, Notifications, Certificates, Ownership, Checkout, AI, Overlay
+- Express + MongoDB backend with JWT auth
+- On-chain integration via smart contracts and service wrappers
 
+| Services Overview |
+| --- |
+| ![Services](./readme/Service.png) |
 
-| Services                            | Validation                       | Testing                        |
-| --------------------------------------- | ------------------------------------- | ------------------------------------- |
-| ![Landing](./readme/demo/1440x1024.png) | ![fsdaf](./readme/demo/1440x1024.png) | ![fsdaf](./readme/demo/1440x1024.png) |
+### Testing
+- Unit and integration tests for core modules (see `Backend/tests`)
 
+| Testing Overview |
+| --- |
+| ![Testing](./readme/Testing.png) |
 
 <br><br>
 
 <!-- Deployment -->
 <img src="./readme/title7.svg"/>
 
-### Add Title Here
-
-- Description here.
-
-
-| Postman API 1                            | Postman API 2                       | Postman API 3                        |
-| --------------------------------------- | ------------------------------------- | ------------------------------------- |
-| ![Landing](./readme/demo/1440x1024.png) | ![fsdaf](./readme/demo/1440x1024.png) | ![fsdaf](./readme/demo/1440x1024.png) |
+### Deployment Map
+| Deployment Diagram |
+| --- |
+| ![Deployment](./readme/diagram1.jpg) |
 
 <br><br>
