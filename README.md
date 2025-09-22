@@ -133,7 +133,7 @@ Agent 2 — Gift Message Writer (English + Arabic)
 
 | Test View 1 | Test View 2 |
 | --- | --- |
-| ![Testing 1](./readme/Testing.png) | ![Testing 2](./readme/testing2.png) |
+| ![Testing snip it](./readme/Testing.png) | ![Testing results](./readme/testing2.png) |
 
 ### Linear (Project Tracking)
 - High‑level planning and task tracking for features and sprints.
