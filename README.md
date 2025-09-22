@@ -45,6 +45,24 @@
 ### Feature Diagram
 <img src="./readme/features.jpg" alt="Feature Diagram"/>
 
+### AI Agents (Simple Overview)
+
+Agent 1 — Sky Check (Are you looking at your star?)
+- Inputs: a live sky photo, location, device orientation, and your star’s coordinates.
+- Steps: align your phone to the sky → compare star map to your camera view.
+- Decisions: if the view matches your star’s position, it confirms alignment; otherwise it guides you closer.
+- Outputs: a clear “You’re on target!” or “Adjust this way” prompt, plus a subtle overlay to nudge you in the right direction.
+
+Agent 2 — Gift Message Writer (English + Arabic)
+- Inputs: recipient name, occasion, your star details (name/date/constellation), and optional tone (romantic, friendly, playful).
+- Steps: craft a short, warm note in English → generate the same sentiment in Arabic.
+- Decisions: adapt tone and length to keep it sweet and readable for gifting.
+- Outputs: a ready‑to‑use bilingual message for the gift card/certificate.
+
+Visuals
+- Sky check in action: <img src="./readme/demo/skyfinder.gif" width="280" alt="Sky Finder Agent"/>
+- Gift message flow: <img src="./readme/demo/Aigift.gif" width="280" alt="AI Gift Agent"/>
+
 <br><br>
 
 <!-- Demo -->
@@ -86,7 +104,9 @@
 
 <br>
 
-### Automation Workflow
+### n8n Automations
+- Orchestrates background workflows (scheduling, webhooks, notifications).
+- Moves recurring/async tasks into visual flows to keep app logic clean.
 | n8n Workflow |
 | --- |
 | ![n8n](./readme/n8n.png) |
@@ -111,11 +131,20 @@
 | ![Services](./readme/Service.png) |
 
 ### Testing
-- Unit and integration tests for core modules (see `Backend/tests`)
+- Unit and integration tests for core modules (see `Backend/tests`).
+- Two snapshots below to reflect recent coverage updates.
 
-| Testing Overview |
+| Test View 1 | Test View 2 |
+| --- | --- |
+| ![Testing 1](./readme/Testing.png) | ![Testing 2](./readme/testing2.png) |
+
+### Linear (Project Tracking)
+- High‑level planning and task tracking for features and sprints.
+- Clear ticket flows help coordinate frontend, backend, and ops work.
+
+| Linear Board |
 | --- |
-| ![Testing](./readme/Testing.png) |
+| ![Linear](./readme/Linear.png) |
 
 <br><br>
 
