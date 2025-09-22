@@ -45,7 +45,7 @@
 ### Feature Diagram
 <img src="./readme/features.jpg" alt="Feature Diagram"/>
 
-### AI Agents (Simple Overview)
+### AI Agents
 
 Agent 1 — Sky Check (Are you looking at your star?)
 - Inputs: a live sky photo, location, device orientation, and your star’s coordinates.
@@ -85,7 +85,7 @@ Agent 2 — Gift Message Writer (English + Arabic)
 
 <br>
 
-### Pages (from the app)
+### Pages 
 - Onboarding: `Frontend/app/onboarding/index.tsx`
 - Auth: `Frontend/app/(auth)/login.tsx`, `Frontend/app/(auth)/register.tsx`
 - Tabs Root: `Frontend/app/(tabs)/index.tsx`
@@ -102,8 +102,8 @@ Agent 2 — Gift Message Writer (English + Arabic)
 <br>
 
 ### n8n Automations
-- Orchestrates background workflows (scheduling, webhooks, notifications).
-- Moves recurring/async tasks into visual flows to keep app logic clean.
+- Sends purchased star certificates via email (templated message + PDF/image attachment).
+- Backs up data weekly (database + assets) and stores snapshots with retention.
 | n8n Workflow |
 | --- |
 | ![n8n](./readme/n8n.png) |
