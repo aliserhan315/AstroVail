@@ -59,9 +59,6 @@ Agent 2 — Gift Message Writer (English + Arabic)
 - Decisions: adapt tone and length to keep it sweet and readable for gifting.
 - Outputs: a ready‑to‑use bilingual message for the gift card/certificate.
 
-Visuals
-- Sky check in action: <img src="./readme/demo/skyfinder.gif" width="280" alt="Sky Finder Agent"/>
-- Gift message flow: <img src="./readme/demo/Aigift.gif" width="280" alt="AI Gift Agent"/>
 
 <br><br>
 
