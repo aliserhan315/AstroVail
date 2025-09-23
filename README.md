@@ -28,7 +28,24 @@
 <img src="./readme/Techstack.png" alt="Tech Stack"/>
 
 ### On-Chain Ownership
-<img src="./readme/blockChain.png" alt="Blockchain Overview"/>
+<img src="./readme/blockChain.png" alt="Blockchain Overview" width="720"/>
+
+#### On-Chain Claim & Verify Flow
+```mermaid
+flowchart LR
+  U[User selects star] --> A[App: create claim]
+  A --> B[Backend: validate + sign]
+  B --> C[(Smart Contract: mint/transfer)]
+  C --> D[Tx receipt + tokenId]
+  D --> E[Backend: persist + notify]
+  E --> F[n8n: email certificate]
+  C --> G[Explorer: on-chain verification]
+```
+
+#### Blockchain Screens
+| Items (Marketplace/Ownership) | Contract View / Code |
+| --- | --- |
+| <img src="./readme/ChainItems.png" width="420" alt="Chain Items"/> | <img src="./readme/ChainCode.png" width="420" alt="Chain Code"/> |
 
 <br><br>
 
@@ -43,9 +60,24 @@
 - Seamless Gift Flow & Checkout: purchase, personalize, preview certificate.
 
 ### Feature Diagram
-<img src="./readme/features.jpg" alt="Feature Diagram"/>
+<img src="./readme/features.jpg" alt="Feature Diagram" width="720"/>
 
 ### AI Agents
+
+```mermaid
+flowchart LR
+  Photo[Sky photo + GPS + compass] --> Match[Star map match]
+  Match -->|yes| Confirm[On target]
+  Match -->|no| Guide[Directional nudge overlay]
+```
+
+```mermaid
+flowchart LR
+  I[Inputs: recipient + tone + star] --> T[Tone selection]
+  T --> EN[Compose English]
+  EN --> AR[Translate/adapt Arabic]
+  AR --> O[Final bilingual message]
+```
 
 Agent 1 — Sky Check (Are you looking at your star?)
 - Inputs: a live sky photo, location, device orientation, and your star’s coordinates.
@@ -77,7 +109,7 @@ Agent 2 — Gift Message Writer (English + Arabic)
 
 | [Gift](Frontend/app/(tabs)/gift/index.tsx) (GIF) | [Checkout](Frontend/app/checkout/index.tsx) (GIF) | [Profile](Frontend/app/(tabs)/profile/index.tsx) (GIF) |
 | --- | --- | --- |
-| <img src="./readme/demo/Aigift.gif" width="280" alt="Gift"/> | <img src="./readme/demo/buying.gif" width="280" alt="Checkout"/> | <img src="./readme/demo/Profile.gif" width="280" alt="Profile"/> |
+| <img src="./readme/demo/Aigift.gif" width="280" alt="Gift"/> | <img src="./readme/demo/buying.gif" width="280" alt="Checkout (HD)"/> | <img src="./readme/demo/Profile.gif" width="280" alt="Profile"/> |
 
 | [Login](Frontend/app/(auth)/login.tsx) | [Register](Frontend/app/(auth)/register.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) (GIF) |
 | --- | --- | --- |
@@ -85,19 +117,7 @@ Agent 2 — Gift Message Writer (English + Arabic)
 
 <br>
 
-### Pages 
-- Onboarding: `Frontend/app/onboarding/index.tsx`
-- Auth: `Frontend/app/(auth)/login.tsx`, `Frontend/app/(auth)/register.tsx`
-- Tabs Root: `Frontend/app/(tabs)/index.tsx`
-- Home/Explore: `Frontend/app/index.tsx`, `Frontend/app/(tabs)/explore/index.tsx`
-- Stars: `Frontend/app/(tabs)/Stars/index.tsx`
-- Star Details: `Frontend/app/(tabs)/star/[starId].tsx`
-- Gift: `Frontend/app/(tabs)/gift/index.tsx`
-- Events: `Frontend/app/(tabs)/events/index.tsx`
-- Notifications: `Frontend/app/(tabs)/notifications/index.tsx`
-- Overlay (Finder + Overlay): `Frontend/app/(tabs)/overlay/finder.tsx`, `Frontend/app/(tabs)/overlay/overlay.tsx`
-- Profile: `Frontend/app/(tabs)/profile/index.tsx`
-- Checkout: `Frontend/app/checkout/index.tsx`
+<!-- Pages section removed per request -->
 
 <br>
 
@@ -152,5 +172,17 @@ Agent 2 — Gift Message Writer (English + Arabic)
 | Deployment Diagram |
 | --- |
 | ![Deployment](./readme/diagram1.jpg) |
+
+#### Checkout Flow (Process)
+```mermaid
+flowchart LR
+  U[User selects gift] --> G[Customize gift]
+  G --> Ck[Checkout]
+  Ck --> Pay[Payment]
+  Pay --> Ok{Success?}
+  Ok -- yes --> Cert[Generate certificate]
+  Cert --> Email[n8n: email + receipt]
+  Ok -- no --> Help[Retry / support]
+```
 
 <br><br>
