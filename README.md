@@ -31,16 +31,7 @@
 <img src="./readme/blockChain.png" alt="Blockchain Overview" width="720"/>
 
 #### On-Chain Claim & Verify Flow
-```mermaid
-flowchart LR
-  U[User selects star] --> A[App: create claim]
-  A --> B[Backend: validate + sign]
-  B --> C[(Smart Contract: mint/transfer)]
-  C --> D[Tx receipt + tokenId]
-  D --> E[Backend: persist + notify]
-  E --> F[n8n: email certificate]
-  C --> G[Explorer: on-chain verification]
-```
+<img src="./readme/On-Chain Claim & Verify Flow.png" alt="On-Chain Claim & Verify Flow" width="720"/>
 
 #### Blockchain Screens
 | Items (Marketplace/Ownership) | Contract View / Code |
@@ -64,20 +55,9 @@ flowchart LR
 
 ### AI Agents
 
-```mermaid
-flowchart LR
-  Photo[Sky photo + GPS + compass] --> Match[Star map match]
-  Match -->|yes| Confirm[On target]
-  Match -->|no| Guide[Directional nudge overlay]
-```
+<img src="./readme/Ai Agent 1 flow.png" alt="AI Agent 1 Flow" width="720"/>
 
-```mermaid
-flowchart LR
-  I[Inputs: recipient + tone + star] --> T[Tone selection]
-  T --> EN[Compose English]
-  EN --> AR[Translate/adapt Arabic]
-  AR --> O[Final bilingual message]
-```
+<img src="./readme/Ai agent 2 flow.png" alt="AI Agent 2 Flow" width="720"/>
 
 Agent 1 — Sky Check (Are you looking at your star?)
 - Inputs: a live sky photo, location, device orientation, and your star’s coordinates.
@@ -113,7 +93,7 @@ Agent 2 — Gift Message Writer (English + Arabic)
 
 | [Login](Frontend/app/(auth)/login.tsx) | [Register](Frontend/app/(auth)/register.tsx) | [Sky Finder](Frontend/app/(tabs)/overlay/finder.tsx) (GIF) |
 | --- | --- | --- |
-| <img src="./readme/demo/Sign.jpg" width="280" alt="Login"/> | <img src="./readme/demo/Register.jpg" width="280" alt="Register"/> | <img src="./readme/demo/skyfinder.gif" width="280" alt="Sky Finder"/> |
+| <img src="./readme/demo/Sign.jpg" width="280" alt="Login"/> | <img src="./readme/demo/Register.jpg" width="280" alt="Register"/> | <img src="./readme/demo/Skyfinder.gif" width="280" alt="Sky Finder"/> |
 
 <br>
 
@@ -174,15 +154,6 @@ Agent 2 — Gift Message Writer (English + Arabic)
 | ![Deployment](./readme/diagram1.jpg) |
 
 #### Checkout Flow (Process)
-```mermaid
-flowchart LR
-  U[User selects gift] --> G[Customize gift]
-  G --> Ck[Checkout]
-  Ck --> Pay[Payment]
-  Pay --> Ok{Success?}
-  Ok -- yes --> Cert[Generate certificate]
-  Cert --> Email[n8n: email + receipt]
-  Ok -- no --> Help[Retry / support]
-```
+<img src="./readme/checkout flow.png" alt="Checkout Flow" width="720"/>
 
 <br><br>
